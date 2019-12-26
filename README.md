@@ -1,4 +1,4 @@
-# litemall-h5
+# vue-admin-template
 
 ## Project setup
 
