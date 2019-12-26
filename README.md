@@ -26,4 +26,4 @@ npm run lint
 
 ### Customize configuration
 
-See [Configuration Reference](https://cli.vuejs.org/config/).
+FOR HELP SEE [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin)
