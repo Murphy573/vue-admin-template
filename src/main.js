@@ -1,6 +1,6 @@
+// 引入element
 import Element from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
-
 // 全局css
 import '@/styles/index.scss';
 
@@ -17,15 +17,10 @@ import './router/router-event';
 
 import './icons'; // icon
 import './directive';
-
-// import * as filters from './filters'; // global filters
+// 引入全局filter
+import './filters';
 
 Vue.use(Element, { size: 'small', zIndex: 3000 });
-
-// register global utility filters
-// Object.keys(filters).forEach(key => {
-//   Vue.filter(key, filters[key]);
-// });
 
 Vue.config.productionTip = false;
 
