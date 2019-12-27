@@ -3,6 +3,11 @@ import Router from 'vue-router';
 import Base from './modules/base';
 import RouterConfig from './router-config';
 
+const originalPush = Router.prototype.push;
+Router.prototype.push = function push (location) {
+  return originalPush.call(this, location).catch(err => err);
+};
+
 Vue.use(Router);
 
 /**
@@ -14,6 +19,7 @@ Vue.use(Router);
     menuMapper: 'routername'          映射的菜单name，激活菜单选中
     breadcrumb： 'breadcrumb'         面包屑i18对应的属性码，不定义则不生成面包屑
     menu: true                        该路由是否是菜单，true则根据权限生成菜单
+    ignoreChilds: true                是否忽略过滤后的菜单是否有子菜单，一般用于嵌套菜单的父级
     showTag: false                    该路由是否生成tag，不设置默认是true
     affix: true                       则该tag不能关闭
     forbiddenJump: true               则该路由不能跳转，一般作用域父路由

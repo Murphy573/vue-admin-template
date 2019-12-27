@@ -23,6 +23,13 @@ function filterMenus (menus, permissions) {
           if (menu.children && menu.children.length) {
             return true;
           }
+          else {
+            // 忽略子路由为空的父路由菜单
+            if (menu.meta.ignoreChilds) {
+              menu.children = undefined;
+              return true;
+            }
+          }
           return false;
         }
         else {
@@ -80,14 +87,8 @@ export default {
       if (!perms || !Array.isArray(perms) || !perms.length) {
         throw new Error('权限列表必须是一个非空数组!');
       }
-      let _menus;
       let _MenuConfig = deepClone(MenuConfig);
-      if (perms.includes('*')) {
-        _menus = _MenuConfig;
-      }
-      else {
-        _menus = filterMenus(_MenuConfig, perms);
-      }
+      let _menus = filterMenus(_MenuConfig, perms);
       commit('SET_MENUS', _menus);
     },
     vx_ac_SetActiveMenu ({ commit }, menu = INIT_ACTIVE_MENU) {
