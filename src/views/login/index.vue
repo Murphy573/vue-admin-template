@@ -42,16 +42,7 @@
 
       <div style="position:relative">
         <div class="tips">
-          <span> 超级管理员用户名: admin123</span>
-          <span> 超级管理员用户名：admin123</span>
-        </div>
-        <div class="tips">
-          <span> 商城管理员用户名: mall123</span>
-          <span> 商城管理员用户名：mall123</span>
-        </div>
-        <div class="tips">
-          <span> 推广管理员用户名: promotion123</span>
-          <span> 推广管理员用户名：promotion123</span>
+          账号密码随便输入
         </div>
       </div>
     </el-form>
@@ -88,20 +79,8 @@ export default {
       loading: false
     };
   },
-  watch: {
-    $route: {
-      handler: function (route) {
-        this.redirect = route.query && route.query.redirect;
-      },
-      immediate: true
-    }
-
-  },
   created () {
-    // window.addEventListener('hashchange', this.afterQRScan)
-  },
-  destroyed () {
-    // window.removeEventListener('hashchange', this.afterQRScan)
+    this.redirect = this.$route.query && this.$route.query.redirect;
   },
   methods: {
     ...mapActions(['vx_ac_LoginByUsername']),

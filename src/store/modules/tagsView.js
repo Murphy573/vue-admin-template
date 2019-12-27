@@ -18,8 +18,8 @@ export default {
       state.visitedViews.push(Object.assign({}, view));
     },
     ADD_CACHED_VIEW: (state, view) => {
-      if (state.cachedViews.includes(view.name)) return;
       if (view.meta.cached) {
+        if (state.cachedViews.includes(view.meta.cached)) return;
         state.cachedViews.push(view.meta.cached);
       }
     },
