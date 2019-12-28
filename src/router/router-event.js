@@ -13,7 +13,7 @@ NProgress.configure({ showSpinner: false });
  * 判断是否有权限：去执行跳转
  */
 function jump (to, next) {
-  if (checkPermission(to.meta.perms)) {
+  if (checkPermission(to.meta.permissions)) {
     // 当路由改变时：设置激活路由menuMapper或者路由name
     store.dispatch('vx_ac_SetActiveMenu', to.meta.menuMapper || to.name);
     next();

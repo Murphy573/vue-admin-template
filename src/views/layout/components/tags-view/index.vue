@@ -50,9 +50,6 @@ export default {
     ...mapGetters(['vx_gt_VisitedViews', 'vx_gt_Menus']),
     cmpt_visitedViews () {
       return this.vx_gt_VisitedViews;
-    },
-    routes () {
-      return this.vx_gt_Menus;
     }
   },
   watch: {
@@ -103,14 +100,14 @@ export default {
         params
       };
     },
-    filterAffixTags (routes) {
+    filterAffixTags (menus) {
       let tags = [];
-      routes.forEach(route => {
-        if (route.meta && route.meta.affix) {
-          tags.push(this.buildTagData(route));
+      menus.forEach(menu => {
+        if (menu.meta.affix && !menu.children) {
+          tags.push(this.buildTagData(menu));
         }
-        if (route.children) {
-          const tempTags = this.filterAffixTags(route.children);
+        if (menu.children) {
+          const tempTags = this.filterAffixTags(menu.children);
           if (tempTags.length >= 1) {
             tags = [...tags, ...tempTags];
           }
@@ -119,7 +116,7 @@ export default {
       return tags;
     },
     initTags () {
-      this.affixTags = this.filterAffixTags(this.routes);
+      this.affixTags = this.filterAffixTags(this.vx_gt_Menus);
       for (const tag of this.affixTags) {
         // Must have tag name
         if (tag.name) {

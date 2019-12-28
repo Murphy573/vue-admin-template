@@ -13,7 +13,7 @@ export function getUserInfo () {
     roles: ['随便'],
     name: 'xxxx',
     // *只所有权限
-    perms: ['*'],
+    perms: ['CODE1'],
     avatar:
       'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
   });

@@ -8,12 +8,12 @@ const user = {
     // 角色
     roles: [],
     // 权限
-    perms: []
+    permissions: []
   },
 
   getters: {
     vx_gt_GetPermissions (state) {
-      return state.perms;
+      return state.permissions;
     },
     vx_gt_GetUserInfo (state) {
       return state.userInfo;
@@ -39,8 +39,8 @@ const user = {
     SET_ROLES: (state, roles = []) => {
       state.roles = roles;
     },
-    SET_PERMS: (state, perms = []) => {
-      state.perms = perms;
+    SET_PERMS: (state, permissions = []) => {
+      state.permissions = permissions;
     }
   },
 

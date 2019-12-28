@@ -122,7 +122,7 @@ http.interceptors.response.use(
     }
   },
   error => {
-    showErrorMessage('登录连接超时（后台不能连接，请联系系统管理员）');
+    showErrorMessage(error.message);
     return Promise.reject(error);
   }
 );

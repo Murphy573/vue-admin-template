@@ -5,7 +5,9 @@ export default {
     eg1: '示例1',
     eg2: '示例2',
     eg3: '示例3',
-    eg33: '示例33'
+    eg33: '示例33',
+    eg4: '示例4',
+    detail: '示例4详情'
   },
   tagsView: {
     refresh: '刷新',

@@ -6,23 +6,21 @@ export default {
   component: LayoutMain,
   name: 'eg',
   meta: {
-    icon: 'chart',
-    menu: true,
     breadcrumb: 'eg',
-    title: 'eg',
-    forbiddenJump: true
+    forbiddenJump: true,
+    title: 'eg'
   },
+  redirect: { name: 'eg1', replace: true },
   children: [
     {
       path: 'eg1',
       component: () => import('@/views/eg/eg1'),
       name: 'eg1',
       meta: {
-        menu: true,
         menuMapper: 'eg1',
         breadcrumb: 'eg1',
         title: 'eg1',
-        perms: ['CODE2']
+        permissions: ['CODE2']
       }
     },
     {
@@ -30,8 +28,7 @@ export default {
       component: () => import('@/views/eg/eg2'),
       name: 'eg2',
       meta: {
-        perms: ['CODE1', 'CODE2'],
-        menu: true,
+        permissions: ['CODE1', 'CODE2'],
         menuMapper: 'eg2',
         breadcrumb: 'eg2',
         title: 'eg2',
@@ -43,23 +40,53 @@ export default {
       component: () => import('@/views/eg/eg3'),
       name: 'eg3',
       meta: {
-        menu: true,
         menuMapper: 'eg3',
         breadcrumb: 'eg3',
         title: 'eg3',
         forbiddenJump: true
       },
+      redirect: { name: 'eg33', replace: true },
       children: [
         {
           path: 'eg33',
           component: () => import('@/views/eg/eg33/index'),
           name: 'eg33',
           meta: {
-            menu: true,
             menuMapper: 'eg33',
             breadcrumb: 'eg33',
             title: 'eg33',
-            perms: ['CODE1']
+            permissions: ['CODE1']
+          }
+        }
+      ]
+    },
+    {
+      path: 'eg4',
+      component: () => import('@/views/eg/eg4'),
+      name: 'eg4',
+      meta: {
+        breadcrumb: 'eg4',
+        title: 'eg4'
+      },
+      redirect: { name: 'eg44', replace: true },
+      children: [
+        {
+          path: 'list',
+          component: () => import('@/views/eg/eg44/list'),
+          name: 'eg44',
+          meta: {
+            menuMapper: 'eg4',
+            title: 'eg4'
+          }
+        },
+        {
+          path: 'detail',
+          component: () => import('@/views/eg/eg44/detail'),
+          name: 'detail',
+          meta: {
+            menuMapper: 'eg4',
+            breadcrumb: 'detail',
+            title: 'detail'
           }
         }
       ]

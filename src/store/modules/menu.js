@@ -1,7 +1,7 @@
 /**
  * 左侧导航问题
  */
-import MenuConfig from '@/router/router-config';
+import MenuConfig from '@/configs/menu';
 import CheckPermission from '@/utils/permission';
 import { deepClone } from '@/utils/object';
 import Cookies from 'js-cookie';
@@ -14,30 +14,20 @@ const INIT_ACTIVE_MENU = '';
  */
 function filterMenus (menus, permissions) {
   return menus.filter(menu => {
-    if (menu.meta.menu) {
-      if (CheckPermission(menu.meta.perms, permissions)) {
-        // 如果路由配置表里是嵌套路由
-        if (menu.children) {
-          menu.children = filterMenus(menu.children, permissions);
-          // 过滤后的嵌套路由如果子路由长度不为0
-          if (menu.children && menu.children.length) {
-            return true;
-          }
-          else {
-            // 忽略子路由为空的父路由菜单
-            if (menu.meta.ignoreChilds) {
-              menu.children = undefined;
-              return true;
-            }
-          }
-          return false;
-        }
-        else {
+    if (CheckPermission(menu.meta.permissions, permissions)) {
+      // 如果路由配置表里是嵌套路由
+      if (menu.children) {
+        menu.children = filterMenus(menu.children, permissions);
+        // 过滤后的嵌套路由如果子路由长度不为0
+        if (menu.children && menu.children.length) {
           return true;
         }
+        return false;
+      }
+      else {
+        return true;
       }
     }
-    return false;
   });
 }
 
@@ -83,12 +73,12 @@ export default {
     }
   },
   actions: {
-    vx_ac_GenerateMenus ({ commit }, perms) {
-      if (!perms || !Array.isArray(perms) || !perms.length) {
+    vx_ac_GenerateMenus ({ commit }, permissions) {
+      if (!permissions || !Array.isArray(permissions) || !permissions.length) {
         throw new Error('权限列表必须是一个非空数组!');
       }
       let _MenuConfig = deepClone(MenuConfig);
-      let _menus = filterMenus(_MenuConfig, perms);
+      let _menus = filterMenus(_MenuConfig, permissions);
       commit('SET_MENUS', _menus);
     },
     vx_ac_SetActiveMenu ({ commit }, menu = INIT_ACTIVE_MENU) {
