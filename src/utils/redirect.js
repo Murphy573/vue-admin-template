@@ -9,7 +9,7 @@ const REDIRECT_SESSION_KEY = 'REDIRECT_ROUTER';
 export function setRedirectRouter (routerInfo) {
   MyStorage.sessionStorage.setItem(
     REDIRECT_SESSION_KEY,
-    JSON.stringify({ name: 'dashboard' })
+    JSON.stringify(routerInfo)
   );
 }
 
