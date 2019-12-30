@@ -45,6 +45,15 @@ export default {
     transitionName: {
       type: String,
       default: 'fade'
+    },
+    scrollTargetSelector: {
+      type: String,
+      default: '#global-main-container'
+    }
+  },
+  computed: {
+    cmpt_scrollTarget () {
+      return document.querySelector(this.scrollTargetSelector);
     }
   },
   data () {
@@ -55,32 +64,32 @@ export default {
     };
   },
   mounted () {
-    window.addEventListener('scroll', this.handleScroll);
+    this.cmpt_scrollTarget.addEventListener('scroll', this.handleScroll);
   },
   beforeDestroy () {
-    window.removeEventListener('scroll', this.handleScroll);
+    this.cmpt_scrollTarget.removeEventListener('scroll', this.handleScroll);
     if (this.interval) {
       clearInterval(this.interval);
     }
   },
   methods: {
     handleScroll () {
-      this.visible = window.pageYOffset > this.visibilityHeight;
+      this.visible = this.cmpt_scrollTarget.scrollTop > this.visibilityHeight;
     },
     backToTop () {
       if (this.isMoving) return;
-      const start = window.pageYOffset;
+      const start = this.cmpt_scrollTarget.scrollTop;
       let i = 0;
       this.isMoving = true;
       this.interval = setInterval(() => {
         const next = Math.floor(this.easeInOutQuad(10 * i, start, -start, 500));
         if (next <= this.backPosition) {
-          window.scrollTo(0, this.backPosition);
+          this.cmpt_scrollTarget.scrollTo(0, this.backPosition);
           clearInterval(this.interval);
           this.isMoving = false;
         }
         else {
-          window.scrollTo(0, next);
+          this.cmpt_scrollTarget.scrollTo(0, next);
         }
         i++;
       }, 16.7);
