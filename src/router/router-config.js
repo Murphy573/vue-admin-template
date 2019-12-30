@@ -11,6 +11,7 @@ import Base from './modules/base';
     breadcrumb： 'breadcrumb'         面包屑i18n对应的属性码，不定义则不生成面包屑
     forbiddenJump: true               则该路由不能跳转并且面包屑不能点击，一般用在父路由上
     isWhiteList: true                 白名单，该路由是否绕过权限和登录验证
+    affix: true                       将tag始终固定在tagbar上，不能关闭
   }
   redirect: {} 父路由建议配置：配置该属性可以提升用户体验（当在浏览器地址栏输入父路由的地址，可以自动重定向到任意路由，即使重定向后的路由没有权限，系统也会给出提示）
 **/

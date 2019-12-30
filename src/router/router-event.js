@@ -1,6 +1,7 @@
 import router from '.';
 import store from '../store';
 import { Message } from 'element-ui';
+import { setRedirectRouter } from '@/utils/redirect';
 // progress bar
 import NProgress from 'nprogress';
 // progress bar style
@@ -42,7 +43,8 @@ function jumpLogin (to, from, next) {
  * 跳转到首页
  */
 function jumpDashboard (next) {
-  next({ name: 'dashboard', replace: true });
+  setRedirectRouter({ name: 'dashboard' });
+  next({ name: 'redirect', replace: true });
   NProgress.done();
 }
 
@@ -61,7 +63,7 @@ router.beforeEach((to, from, next) => {
   // start progress bar
   NProgress.start();
   if (store.getters.vx_gt_GetToken) {
-    if (to.name === 'login' || to.meta.forbiddenJump) {
+    if (to.name === 'login' || to.meta.forbiddenJump || !to.matched.length) {
       jumpDashboard(next);
     }
     else {

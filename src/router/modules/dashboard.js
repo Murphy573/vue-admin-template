@@ -5,6 +5,7 @@ export default {
   meta: {
     menuMapper: 'dashboard',
     breadcrumb: 'dashboard',
-    title: 'dashboard'
+    title: 'dashboard',
+    affix: true
   }
 };

@@ -33,7 +33,7 @@
 import ScrollPane from './ScrollPane';
 import { mapActions, mapGetters } from 'vuex';
 import { deepCompare } from '@/utils/object';
-import MyStorage from '@/utils/storage';
+import { setRedirectRouter } from '@/utils/redirect';
 
 export default {
   components: { ScrollPane },
@@ -179,7 +179,7 @@ export default {
       }
     },
     toRedirect (view) {
-      MyStorage.sessionStorage.setItem('REDIRECT_ROUTER', JSON.stringify(view));
+      setRedirectRouter(view);
       this.$router.replace({ name: 'redirect' });
     },
     openMenu (tag, e) {
