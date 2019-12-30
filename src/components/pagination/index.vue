@@ -1,9 +1,11 @@
 <template>
-  <div :class="{'hidden':hidden}"
+  <div v-show="total > 0"
+    :class="{'hidden':hidden}"
     class="pagination-container">
     <el-pagination :background="background"
-      :current-page.sync="currentPage"
-      :page-size.sync="pageSize"
+      :current-page.sync="cmpt_currentPage"
+      :page-size.sync="cmpt_pageSize"
+      :page-sizes="pageSizes"
       :layout="layout"
       :total="total"
       v-bind="$attrs"
@@ -13,8 +15,6 @@
 </template>
 
 <script>
-import { scrollTo } from '@/utils/scrollTo';
-
 export default {
   name: 'Pagination',
   props: {
@@ -22,11 +22,11 @@ export default {
       required: true,
       type: Number
     },
-    page: {
+    currentPage: {
       type: Number,
       default: 1
     },
-    limit: {
+    pageSize: {
       type: Number,
       default: 20
     },
@@ -50,29 +50,29 @@ export default {
     }
   },
   computed: {
-    currentPage: {
+    cmpt_currentPage: {
       get () {
-        return this.page;
+        return this.currentPage;
       },
       set (val) {
-        this.$emit('update:page', val);
+        this.$emit('update:currentPage', val);
       }
     },
-    pageSize: {
+    cmpt_pageSize: {
       get () {
-        return this.limit;
+        return this.pageSize;
       },
       set (val) {
-        this.$emit('update:limit', val);
+        this.$emit('update:pageSize', val);
       }
     }
   },
   methods: {
     handleSizeChange (val) {
-      this.$emit('pagination', { page: this.currentPage, limit: val });
+      this.$emit('pagination', { currentPage: this.currentPage, pageSize: val });
     },
     handleCurrentChange (val) {
-      this.$emit('pagination', { page: val, limit: this.pageSize });
+      this.$emit('pagination', { currentPage: val, pageSize: this.pageSize });
     }
   }
 };
@@ -81,7 +81,7 @@ export default {
 <style scoped>
 .pagination-container {
   background: #fff;
-  padding: 32px 16px;
+  padding: 15px 0;
 }
 .pagination-container.hidden {
   display: none;
