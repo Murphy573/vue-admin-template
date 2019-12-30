@@ -1,7 +1,8 @@
 <template>
   <div class="layout">
     <SideBar />
-    <div class="main-container"
+    <div id="global-main-container"
+      class="main-container"
       :class="cmpt_mainClass">
       <div class="main-top">
         <Navbar />
