@@ -54,8 +54,6 @@ export default {
   },
   watch: {
     $route () {
-      let { meta } = this.$route;
-      if (meta && meta.showTag === false) return;
       this.addTags();
       this.moveToCurrentTag();
     },
@@ -125,7 +123,8 @@ export default {
       }
     },
     addTags () {
-      const { name } = this.$route;
+      const { name, meta } = this.$route;
+      if (meta && meta.showTag === false) return;
       if (name) {
         this.vx_ac_AddView(this.buildTagData(this.$route));
       }
