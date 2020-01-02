@@ -7,7 +7,7 @@
         ref="tag"
         :key="tag.name"
         :class="isActive(tag)?'active':''"
-        :to="{ name: tag.name, query: tag.query, params: tag.params, meta: tag.meta}"
+        :to="tag"
         tag="span"
         class="tags-view-item"
         @contextmenu.prevent.native="openMenu(tag,$event)">
