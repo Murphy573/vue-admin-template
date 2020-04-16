@@ -12,6 +12,9 @@
  */
 export function formatDate (time, fmt = 'YYYY-MM-DD') {
   if (!time) return '';
+  if (typeof time === 'string') {
+    time = time.replace(/-/g, '/');
+  }
   let _time = new Date(time);
   let o = {
     'M+': _time.getMonth() + 1, // 月份

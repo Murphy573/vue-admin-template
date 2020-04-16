@@ -12,12 +12,12 @@ const INIT_ACTIVE_MENU = '';
 /**
  * 递归过滤符合条件的路由
  */
-function filterMenus (menus, permissions) {
+function filterMenus (menus) {
   return menus.filter(menu => {
-    if (CheckPermission(menu.meta.permissions, permissions)) {
+    if (CheckPermission(menu.meta.permissions)) {
       // 如果路由配置表里是嵌套路由
       if (menu.children) {
-        menu.children = filterMenus(menu.children, permissions);
+        menu.children = filterMenus(menu.children);
         // 过滤后的嵌套路由如果子路由长度不为0
         if (menu.children && menu.children.length) {
           return true;

@@ -1,36 +1,39 @@
-import Vue from 'vue';
 import Clipboard from 'clipboard';
+import { isFunction, noop } from './common';
 
-function clipboardSuccess () {
-  Vue.prototype.$message({
-    message: '拷贝成功',
-    type: 'success',
-    duration: 1500
-  });
+// 检测是否安装了clipboard
+if (!Clipboard) {
+  throw new Error('you should npm install `clipboard` --save at first ');
 }
 
-function clipboardError () {
-  Vue.prototype.$message({
-    message: '拷贝失败',
-    type: 'error'
-  });
-}
-
-export default function handleClipboard (text, event) {
+export default function ({
+  action = 'copy',
+  text = 'clipboard',
+  success = noop,
+  error = noop,
+  event = null
+} = {}) {
+  // 检测event是否是事件对象
+  if (!(event instanceof Event)) {
+    throw new Error('you should pass in an Event');
+  }
   const clipboard = new Clipboard(event.target, {
-    text: () => text
+    text: () => text,
+    action: () => (action === 'cut' ? 'cut' : 'copy')
   });
-  clipboard.on('success', () => {
-    clipboardSuccess();
+
+  clipboard.on('success', e => {
+    isFunction(success) && success(e);
     clipboard.off('error');
     clipboard.off('success');
     clipboard.destroy();
   });
-  clipboard.on('error', () => {
-    clipboardError();
+  clipboard.on('error', e => {
+    isFunction(error) && error(e);
     clipboard.off('error');
     clipboard.off('success');
     clipboard.destroy();
   });
+
   clipboard.onClick(event);
 }

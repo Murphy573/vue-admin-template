@@ -1,10 +1,11 @@
 import store from '@/store';
+import Vue from 'vue';
 
 /**
  * @param {Array} value
  * @returns {Boolean}
  */
-export default function checkPermission (perms) {
+const checkPermission = function (perms) {
   // 不传入值或者格式不对，不进行权限校验，就认为有权限
   if (!perms || !Array.isArray(perms)) return true;
   if (perms.length > 0) {
@@ -29,4 +30,12 @@ export default function checkPermission (perms) {
   else {
     return false;
   }
-}
+};
+
+/**
+ * 注册到全局：判断是否有权限
+ * @param {String} value 权限码
+ */
+Vue.prototype.$permission = checkPermission;
+
+export default checkPermission;
