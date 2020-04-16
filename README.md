@@ -24,6 +24,6 @@ npm run build
 npm run lint
 ```
 
-### Customize configuration
+### 使用
 
-FOR HELP SEE [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin)
+请查看 [murphy-cli](https://github.com/Murphy573/murphy-cli).
