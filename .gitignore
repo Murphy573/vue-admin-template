@@ -21,4 +21,4 @@ yarn-error.log*
 *.sw?
 
 # 打包目录
-/litemall-admin-prod-dist
+/admin-prod-dist
