@@ -75,11 +75,20 @@ const user = {
               name: res.name,
               avatar: res.avatar
             };
+            let permissions = res.perms;
+
+            if (
+              !permissions ||
+              !Array.isArray(permissions) ||
+              !permissions.length
+            ) {
+              throw new Error('权限列表必须是一个非空数组!');
+            }
 
             commit('SET_ROLES', res.roles);
             commit('SET_USERINFO', _userInfo);
-            commit('SET_PERMS', res.perms);
-            dispatch('vx_ac_GenerateMenus', res.perms);
+            commit('SET_PERMS', permissions);
+            dispatch('vx_ac_GenerateMenus');
             resolve(res);
           })
           .catch(error => {

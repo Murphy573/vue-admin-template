@@ -73,12 +73,9 @@ export default {
     }
   },
   actions: {
-    vx_ac_GenerateMenus ({ commit }, permissions) {
-      if (!permissions || !Array.isArray(permissions) || !permissions.length) {
-        throw new Error('权限列表必须是一个非空数组!');
-      }
+    vx_ac_GenerateMenus ({ commit }) {
       let _MenuConfig = deepClone(MenuConfig);
-      let _menus = filterMenus(_MenuConfig, permissions);
+      let _menus = filterMenus(_MenuConfig);
       commit('SET_MENUS', _menus);
     },
     vx_ac_SetActiveMenu ({ commit }, menu = INIT_ACTIVE_MENU) {
