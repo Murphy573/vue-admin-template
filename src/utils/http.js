@@ -4,11 +4,6 @@ import store from '@/store';
 import {
   TOKEN_TIMEOUT,
   SUCCESS,
-  CODE502,
-  CODE503,
-  CODE504,
-  CODE505,
-  CODE506,
   FORBIDDEN_TOAST_CODES
 } from '../configs/http-code';
 
@@ -39,7 +34,7 @@ http.interceptors.request.use(
   config => {
     if (store.getters.vx_gt_GetToken) {
       // 让每个请求携带token
-      config.headers['Umall-Biz-Token'] = store.getters.vx_gt_GetToken;
+      config.headers['Custom-Token'] = store.getters.vx_gt_GetToken;
     }
     // 在这里对config进行统一处理
     return config;
@@ -53,9 +48,9 @@ http.interceptors.request.use(
  * 响应后进行统一拦截
  * 假如后台返回的数据对象为：
  *    {
-        errno: string;
-        data: any;
-        errmsg: string,
+        code: string;
+        content: any;
+        message: string,
       }
  */
 http.interceptors.response.use(
@@ -66,12 +61,12 @@ http.interceptors.response.use(
     }
 
     let _res = res.data;
-    if (_res.errno !== SUCCESS) {
+    if (_res.code !== SUCCESS) {
       // 禁止弹出的code不作处理
-      if (FORBIDDEN_TOAST_CODES.includes(_res.errno)) {
+      if (FORBIDDEN_TOAST_CODES.includes(_res.code)) {
       }
       // 这里对具体不为成功的响应码进行处理,可以做提示信息操作
-      else if (_res.errno === TOKEN_TIMEOUT) {
+      else if (_res.code === TOKEN_TIMEOUT) {
         MessageBox.alert('系统未登录，请重新登录', '错误', {
           confirmButtonText: '确定',
           type: 'error'
@@ -84,28 +79,13 @@ http.interceptors.response.use(
           .catch(error => {});
         return Promise.reject(new Error('系统未登录，请重新登录'));
       }
-      else if (_res.errno === CODE502) {
-        showErrorMessage('系统内部错误，请联系管理员维护');
-      }
-      else if (_res.errno === CODE503) {
-        showErrorMessage('请求业务目前未支持', 'warning');
-      }
-      else if (_res.errno === CODE504) {
-        showErrorMessage('更新数据已经失效，请刷新页面重新操作', 'warning');
-      }
-      else if (_res.errno === CODE505) {
-        showErrorMessage('更新失败，请再尝试一次', 'warning');
-      }
-      else if (_res.errno === CODE506) {
-        showErrorMessage('没有操作权限，请联系管理员授权', 'warning');
-      }
       else {
-        showErrorMessage(_res.errmsg);
+        showErrorMessage(_res.message);
       }
       return Promise.reject(_res);
     }
     else {
-      return Promise.resolve(_res.data);
+      return Promise.resolve(_res.content);
     }
   },
   error => {

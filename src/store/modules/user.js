@@ -75,7 +75,8 @@ const user = {
               name: res.name,
               avatar: res.avatar
             };
-            let permissions = res.perms;
+            // 权限码
+            let permissions = res.privilegeCodes;
 
             if (
               !permissions ||
