@@ -58,11 +58,11 @@ export default {
   flex: none;
   background-color: $--color-menuBg;
   height: 100%;
-  font-size: 0px;
+  font-size: 0;
   overflow: hidden;
   z-index: 1001;
 
-  /deep/ {
+  ::v-deep {
     .el-scrollbar {
       width: 100%;
       height: 100%;
@@ -73,7 +73,7 @@ export default {
 
       .el-scrollbar__bar {
         &.is-vertical {
-          right: 0px;
+          right: 0;
         }
         &.is-horizontal {
           display: none;
@@ -103,7 +103,7 @@ export default {
   &.hideSidebar {
     width: $--size-menuCollapseWidth !important;
 
-    /deep/ {
+    ::v-deep {
       .submenu-title-noDropdown {
         padding: 0 !important;
         position: relative;

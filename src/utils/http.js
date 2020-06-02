@@ -9,7 +9,7 @@ import {
 
 // 设置http get请求不缓存
 axios.defaults.headers.get['Cache-Control'] = 'no-cache';
-axios.defaults.headers.get['Pragma'] = 'no-cache';
+axios.defaults.headers.get.Pragma = 'no-cache';
 
 const http = axios.create({
   baseURL: '/admin'

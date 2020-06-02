@@ -46,6 +46,7 @@ export function getPropByPath (obj, path, strict) {
  * @param  {...any} args 参数
  */
 export function deepCompare (...args) {
+  /* eslint-disable */
   let i, l, leftChain, rightChain;
 
   function compare2Objects (x, y) {

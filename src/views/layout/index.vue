@@ -39,8 +39,8 @@ export default {
     cmpt_mainClass () {
       return {
         'fixed-header': this.vx_gt_fixedHeader,
-        'collapse': this.cmpt_isSidebarCollapse,
-        'showTagsView': this.vx_gt_showTagsView
+        collapse: this.cmpt_isSidebarCollapse,
+        showTagsView: this.vx_gt_showTagsView
       };
     }
   }

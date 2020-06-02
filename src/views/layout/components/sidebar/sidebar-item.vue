@@ -57,7 +57,7 @@ export default {
     font-size: 18px;
   }
 
-  /deep/ {
+  ::v-deep {
     .el-submenu {
       .el-menu-item {
         background-color: $--color-subMenuBg !important;
