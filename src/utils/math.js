@@ -10,7 +10,7 @@ const NUMBER_PATTERN = /^[+-]?\d+(\.\d+)?([Ee][+-]?[\d]+)?$/;
  * 判断是否是数字：数字字符串也认为是数字
  * @param {Number|String} num
  */
-function checkNumber(num) {
+function checkNumber (num) {
   if (!NUMBER_PATTERN.test(num)) {
     throw new Error(`${num} is not a number`);
   }
@@ -21,13 +21,13 @@ function checkNumber(num) {
  * @param {Number} num 输入数
  * @param {Boolean} checkBoundaryFlag 是否检测边界
  */
-function checkBoundary(num, checkBoundaryFlag = false) {
+function checkBoundary (num, checkBoundaryFlag = false) {
   checkNumber(num);
 
   if (!checkBoundaryFlag) return;
   if (num > Number.MAX_SAFE_INTEGER || num < Number.MIN_SAFE_INTEGER) {
     throw new Error(
-      `${num} is beyond boundary when transfer to integer, the results may not be accurate`,
+      `${num} is beyond boundary when transfer to integer, the results may not be accurate`
     );
   }
 }
@@ -38,7 +38,7 @@ function checkBoundary(num, checkBoundaryFlag = false) {
  * @param {Number} precision
  * @example  strip(0.09999999999999998)=0.1
  */
-function strip(num, precision = 12) {
+function strip (num, precision = 12) {
   checkNumber(num);
 
   return +parseFloat(num.toPrecision(precision));
@@ -48,7 +48,7 @@ function strip(num, precision = 12) {
  * 返回浮点数小数位长度
  * @param {Number} num 输入数
  */
-function digitLength(num) {
+function digitLength (num) {
   checkNumber(num);
 
   // 科学记数法
@@ -61,7 +61,7 @@ function digitLength(num) {
  * 把小数转成整数，支持科学计数法。如果是小数则放大成整数
  * @param {Number} num 输入数
  */
-function float2Fixed(num) {
+function float2Fixed (num) {
   checkNumber(num);
 
   if (num.toString().indexOf('e') === -1) {
@@ -76,7 +76,7 @@ function float2Fixed(num) {
  * @param {Number} num1 输入数1
  * @param {Number} num2 输入数2
  */
-function times(num1, num2) {
+export function times (num1, num2) {
   checkNumber(num1);
   checkNumber(num2);
 
@@ -95,7 +95,7 @@ function times(num1, num2) {
  * @param {Number} num1 输入数1
  * @param {Number} num2 输入数2
  */
-function plus(num1, num2) {
+export function plus (num1, num2) {
   checkNumber(num1);
   checkNumber(num2);
 
@@ -108,7 +108,7 @@ function plus(num1, num2) {
  * @param {Number} num1 输入数1
  * @param {Number} num2 输入数2
  */
-function minus(num1, num2) {
+export function minus (num1, num2) {
   checkNumber(num1);
   checkNumber(num2);
 
@@ -121,7 +121,7 @@ function minus(num1, num2) {
  * @param {Number} num1 输入数1
  * @param {Number} num2 输入数2
  */
-function divide(num1, num2) {
+export function divide (num1, num2) {
   checkNumber(num1);
   checkNumber(num2);
 
@@ -133,7 +133,7 @@ function divide(num1, num2) {
   // fix: 类似 10 ** -4 为 0.00009999999999999999，strip 修正
   return times(
     num1Changed / num2Changed,
-    strip(Math.pow(10, digitLength(num2) - digitLength(num1))),
+    strip(Math.pow(10, digitLength(num2) - digitLength(num1)))
   );
 }
 
@@ -142,7 +142,7 @@ function divide(num1, num2) {
  * @param {Number} num 输入数
  * @param {Number} ratio 保留几位小数
  */
-function round(num, ratio = 0) {
+export function round (num, ratio = 0) {
   checkNumber(num);
 
   const base = Math.pow(10, ratio);
