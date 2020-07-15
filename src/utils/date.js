@@ -1,4 +1,18 @@
 /**
+ * 将任意时间格式转换为Date对象
+ * @param {Number|Date|String} time 时间
+ * @returns Date
+ */
+export function toDate (time) {
+  if (!time) {
+    return new Date();
+  };
+  if (typeof time === 'string') {
+    time = time.replace(/-/g, '/');
+  }
+  return new Date(time);
+}
+/**
  * 日期转换
  * @param {Number|Date|String} time 时间
  * @param {String} ftm 转换格式
@@ -12,10 +26,9 @@
  */
 export function formatDate (time, fmt = 'YYYY-MM-DD') {
   if (!time) return '';
-  if (typeof time === 'string') {
-    time = time.replace(/-/g, '/');
-  }
-  let _time = new Date(time);
+
+  let _time = toDate(time);
+
   let o = {
     'M+': _time.getMonth() + 1, // 月份
     'D+': _time.getDate(), // 日
@@ -77,4 +90,17 @@ export function getWeekDay (time, prefix = '星期') {
   }
   const week = ['日', '一', '二', '三', '四', '五', '六'];
   return `${prefix}${week[new Date(time).getDay()]}`;
+}
+
+/**
+ * 判断时间1是否在时间2之前
+ * @param {Date|Number|String} time1 时间1
+ * @param {Date|Number|String} time2 时间2
+ * @returns Boolean
+ */
+export function isBefore (time1, time2) {
+  if (!time1 || !time2) return false;
+  time1 = toDate(time1).getTime();
+  time2 = toDate(time2).getTime();
+  return time1 < time2;
 }
