@@ -1,4 +1,4 @@
-// vue.config.js
+// vue.config.js 配置
 const path = require('path');
 const resolve = dir => path.join(__dirname, dir);
 // 环境变量
