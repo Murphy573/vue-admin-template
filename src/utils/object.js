@@ -15,6 +15,7 @@ export function deepClone (target) {
  * @param {Boolean} strict 严格模式
  */
 export function getPropByPath (obj, path, strict) {
+  /* eslint-disable */
   let tempObj = obj;
   path = path.replace(/\[(\w+)\]/g, '.$1');
   path = path.replace(/^\./, '');
