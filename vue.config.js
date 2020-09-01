@@ -64,7 +64,7 @@ module.exports = {
     extract: !!IS_PRODUCTION,
     loaderOptions: {
       // 给 sass-loader 传递选项
-      sass: {
+      scss: {
         // 这里只能引入全局变量css文件，其他的通用样式不要引入，不然会产生样式混乱
         prependData: '@import "@/styles/vars.scss";'
       }
