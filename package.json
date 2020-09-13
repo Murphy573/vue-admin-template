@@ -26,6 +26,8 @@
     "vuex": "^3.4.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^9.1.2",
+    "@commitlint/config-conventional": "^9.1.2",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",
@@ -52,14 +54,15 @@
     "vue-template-compiler": "^2.6.11"
   },
   "lint-staged": {
-    "src/**/*.{js,jsx,vue}": [
+    "*.{js,jsx,vue}": [
       "npm run lint",
       "git add"
     ]
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   }
 }
