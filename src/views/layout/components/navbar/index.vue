@@ -22,7 +22,7 @@
         </div>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item>
-            <router-link to="/profile/password">
+            <router-link :to="{name: 'changePassword'}">
               密码修改
             </router-link>
           </el-dropdown-item>
@@ -73,8 +73,8 @@ export default {
   height: $--size-navHeight;
   overflow: hidden;
   position: relative;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  background: #ffffff;
+  box-shadow: 0 1px 0 0 #ebedf0;
 
   .hamburger-container {
     line-height: 46px;

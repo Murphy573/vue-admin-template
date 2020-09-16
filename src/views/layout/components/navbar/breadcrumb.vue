@@ -39,7 +39,7 @@ export default {
       return this.$t(`navigation.${title}`);
     },
     getBreadcrumb () {
-      let _matchedRoutes = this.$route.matched;
+      const _matchedRoutes = this.$route.matched;
       let _breads = [];
       _matchedRoutes.forEach(router => {
         if (router.meta.breadcrumb) {
@@ -88,7 +88,7 @@ export default {
   margin-left: 8px;
 
   .no-redirect {
-    color: #97a8be;
+    color: #616871;
     cursor: text;
   }
 }

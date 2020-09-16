@@ -80,12 +80,17 @@ export default {
   overflow: hidden;
   width: 100%;
 
-  ::v-deep {
+  /deep/ {
     .el-scrollbar__bar {
       bottom: 0;
     }
     .el-scrollbar__wrap {
-      height: 49px;
+      height: 52px;
+
+      .el-scrollbar__view {
+        display: flex;
+        flex-flow: row nowrap;
+      }
     }
   }
 }

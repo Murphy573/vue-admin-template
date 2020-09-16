@@ -66,6 +66,17 @@ export default {
       width: 100%;
     }
 
+    .main-bottom {
+      background: #f5f7fa;
+      min-height: calc(100% - #{$--size-navHeight});
+    }
+
+    &.showTagsView {
+      .main-bottom {
+        min-height: calc(100% - #{$--size-navHeight} - #{$--size-tagHeight});
+      }
+    }
+
     &.fixed-header {
       .main-top {
         position: fixed;
@@ -81,14 +92,15 @@ export default {
         }
       }
 
+      .main-bottom {
+        min-height: 100%;
+        padding-top: $--size-navHeight;
+      }
+
       &.showTagsView {
         .main-bottom {
           padding-top: calc(#{$--size-navHeight} + #{$--size-tagHeight});
         }
-      }
-
-      .main-bottom {
-        padding-top: $--size-navHeight;
       }
     }
   }

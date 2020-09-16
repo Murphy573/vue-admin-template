@@ -1,12 +1,11 @@
 <template>
-  <div id="tags-view-container"
-    class="tags-view-container">
+  <div class="tags-view-container">
     <scroll-pane ref="scrollPane"
       class="tags-view-wrapper">
-      <router-link v-for="tag in cmpt_visitedViews"
+      <router-link v-for="(tag, index) in cmpt_visitedViews"
         ref="tag"
         :key="tag.name"
-        :class="isActive(tag)?'active':''"
+        :class="tagClass(tag, index)"
         :to="tag"
         tag="span"
         class="tags-view-item"
@@ -43,13 +42,17 @@ export default {
       top: 0,
       left: 0,
       selectedTag: {},
-      affixTags: []
+      affixTags: [],
+      activeTagIndex: -1
     };
   },
   computed: {
     ...mapGetters(['vx_gt_VisitedViews', 'vx_gt_Menus']),
     cmpt_visitedViews () {
       return this.vx_gt_VisitedViews;
+    },
+    cmpt_tagClass () {
+      return {};
     }
   },
   watch: {
@@ -83,8 +86,12 @@ export default {
     generateTitle (title) {
       return this.$t(`navigation.${title}`);
     },
-    isActive (route) {
-      return route.name === this.$route.name;
+    tagClass (tag, index) {
+      this.activeTagIndex = this.cmpt_visitedViews.findIndex(tag => tag.name === this.$route.name);
+      return {
+        active: tag.name === this.$route.name,
+        breakline: index !== this.activeTagIndex && index !== this.activeTagIndex - 1
+      };
     },
     isAffix (tag) {
       return tag.meta && tag.meta.affix;
@@ -137,7 +144,7 @@ export default {
           if (tag.to.name === this.$route.name) {
             this.$refs.scrollPane.moveToTarget(tag);
             // when query is different then update
-            let _cur = this.buildTagData(this.$route);
+            const _cur = this.buildTagData(this.$route);
             if (!deepCompare(tag.to, _cur)) {
               this.vx_ac_UpdateVisitedView(_cur);
             }
@@ -207,46 +214,47 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+$--top: 10px;
+
 .tags-view-container {
   height: $--size-tagHeight;
+  padding-top: $--top;
   width: 100%;
-  background: #fff;
-  border-bottom: 1px solid #d8dce5;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+
   .tags-view-wrapper {
     .tags-view-item {
-      display: inline-block;
+      flex: none;
+      min-width: 80px;
       position: relative;
       cursor: pointer;
-      height: 26px;
-      line-height: 26px;
-      border: 1px solid #d8dce5;
-      color: #495060;
+      height: calc(#{$--size-tagHeight} - #{$--top});
+      line-height: calc(#{$--size-tagHeight} - #{$--top});
+      color: #1b2437;
       background: #fff;
-      padding: 0 8px;
+      padding: 0 12px 0 12px;
       font-size: 12px;
-      margin-left: 5px;
-      margin-top: 4px;
+      user-select: none;
+      text-align: center;
+
+      &:not(:last-of-type).breakline::after {
+        content: '';
+        position: absolute;
+        width: 1px;
+        height: 18px;
+        top: 50%;
+        right: 1px;
+        background: #838ca1;
+        transform: translateY(-50%);
+      }
+
       &:first-of-type {
-        margin-left: 15px;
+        margin-left: 12px;
       }
-      &:last-of-type {
-        margin-right: 15px;
-      }
+
       &.active {
-        background-color: #42b983;
-        color: #fff;
-        border-color: #42b983;
-        &::before {
-          content: '';
-          background: #fff;
-          display: inline-block;
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          position: relative;
-          margin-right: 2px;
-        }
+        background-color: #f5f7fa;
+        border-radius: 8px 8px 0 0;
       }
     }
   }
@@ -279,21 +287,13 @@ export default {
 .tags-view-wrapper {
   .tags-view-item {
     .el-icon-close {
-      width: 16px;
-      height: 16px;
-      vertical-align: 2px;
+      font-size: 12px;
+      margin-left: 30px;
       border-radius: 50%;
       text-align: center;
-      transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
-      transform-origin: 100% 50%;
-      &:before {
-        transform: scale(0.6);
-        display: inline-block;
-        vertical-align: -3px;
-      }
+
       &:hover {
-        background-color: #b4bccc;
-        color: #fff;
+        color: #ffffff;
       }
     }
   }
