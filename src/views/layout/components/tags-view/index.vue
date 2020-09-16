@@ -93,6 +93,9 @@ export default {
         breakline: index !== this.activeTagIndex && index !== this.activeTagIndex - 1
       };
     },
+    isActive (route) {
+      return route.name === this.$route.name;
+    },
     isAffix (tag) {
       return tag.meta && tag.meta.affix;
     },
@@ -293,7 +296,7 @@ $--top: 10px;
       text-align: center;
 
       &:hover {
-        color: #ffffff;
+        color: $--color-menu-primary;
       }
     }
   }

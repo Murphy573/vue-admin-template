@@ -2,26 +2,35 @@
 $--size-menuNormalWidth: 240px;
 $--size-menuCollapseWidth: 54px;
 
-$--color-menu-primary: #27BB4F;
+$--color-menu-primary: #27bb4f;
 $--color-menu-text: #616871;
 
-$--color-menuItemText:  #616871;
+$--color-menuItemText: $--color-menu-text;
 $--color-menuItemActiveText: #ffffff;
 $--color-menuItemBg: #ffffff;
-$--color-menuItemHoverBg: rgba($color: #27BB4F, $alpha: 0.1);
-$--color-menuItemActiveBg: #27BB4F;
+$--color-menuItemHoverBg: rgba(
+  $color: $--color-menu-primary,
+  $alpha: 0.1,
+);
+$--color-menuItemActiveBg: $--color-menu-primary;
 
-$--color-submenuTitleText: #616871;
-$--color-submenuTitleActiveText: #27BB4F;
+$--color-submenuTitleText: $--color-menu-text;
+$--color-submenuTitleActiveText: $--color-menu-primary;
 $--color-submenuTitleBg: #ffffff;
-$--color-submenuTitleHoverBg:rgba($color: #27BB4F, $alpha: 0.1);
+$--color-submenuTitleHoverBg: rgba(
+  $color: $--color-menu-primary,
+  $alpha: 0.1
+);
 $--color-submenuTitleActiveBg: #ffffff;
 
-$--color-submenuItemText: #616871;
+$--color-submenuItemText: $--color-menu-text;
 $--color-submenuItemActiveText: #ffffff;
 $--color-submenuItemBg: #f3f4f5;
-$--color-submenuItemHoverBg:rgba($color: #27BB4F, $alpha: 0.1);
-$--color-submenuItemActiveBg: #27BB4F;
+$--color-submenuItemHoverBg: rgba(
+  $color: $--color-menu-primary,
+  $alpha: 0.1
+);
+$--color-submenuItemActiveBg: $--color-menu-primary;
 
 /* nav */
 $--size-navHeight: 56px;
