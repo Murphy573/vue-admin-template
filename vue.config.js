@@ -81,7 +81,7 @@ module.exports = {
     open: true,
     // 配置多个代理
     proxy: {
-      '/admin': {
+      '^/admin/': {
         target: 'http://10.181.4.228:23456',
         changeOrigin: true
       }
