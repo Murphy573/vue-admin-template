@@ -36,17 +36,6 @@ $--font-path: '~element-ui/lib/theme-chalk/fonts';
   }
 }
 
-.status-col {
-  .cell {
-    padding: 0 10px;
-    text-align: center;
-
-    .el-tag {
-      margin-right: 0;
-    }
-  }
-}
-
 // to fixed https://github.com/ElemeFE/element/issues/2461
 .el-dialog {
   transform: none;
