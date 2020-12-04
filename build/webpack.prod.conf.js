@@ -51,7 +51,7 @@ module.exports = {
       name: entrypoint => `runtime~${entrypoint.name}`
     },
     splitChunks: {
-      chunks: 'all',
+      chunks: 'async',
       // minChunks: 2,
       // minSize: 20000,
       // maxAsyncRequests: 20,
@@ -59,24 +59,54 @@ module.exports = {
       // name: false,
       cacheGroups: {
         vue: {
-          test: /[\\/]node_modules[\\/](vue|vue-router|vuex|vue-i18n)[\\/]/,
-          name: 'vue-vendor',
+          test: /[\\/]node_modules[\\/](vue|vue-router|vuex)[\\/]/,
+          name: 'chunk-vue',
           chunks: 'all',
-          priority: 30
+          priority: 40
         },
         // 单独将 ElementUI 拆包
-        ElementUI: {
-          // 打包名称
-          name: 'chunk-ElementUI',
-          // 权重要大于其他，不然会被打包进 vendors
-          priority: 20,
+        elementUI: {
+          name: 'chunk-elementUI',
+          priority: 30,
+          chunks: 'all',
           test: /[\\/]node_modules[\\/]element-ui[\\/]/
         },
-        libs: {
-          name: 'chunk-libs',
+        vendors: {
+          name: 'chunk-vendors',
           test: /[\\/]node_modules[\\/]/,
-          priority: 10,
-          chunks: 'initial' // only package third parties that are initially dependent
+          minChunks: 1,
+          priority: 25
+        },
+        comps: {
+          name: 'chunk-comps',
+          test: resolve('../src/components'),
+          minChunks: 1,
+          priority: 21
+        },
+        // libs: {
+        //   name: 'chunk-libs',
+        //   test: resolve('../src/libs'),
+        //   chunks: 'all',
+        //   minChunks: 1,
+        //   priority: 20
+        // },
+        utils: {
+          name: 'chunk-utils',
+          test: resolve('../src/utils'),
+          minChunks: 1,
+          priority: 19
+        },
+        apis: {
+          name: 'chunk-apis',
+          test: resolve('../src/apis'),
+          minChunks: 1,
+          priority: 18
+        },
+        configs: {
+          name: 'chunk-configs',
+          test: resolve('../src/configs'),
+          minChunks: 1,
+          priority: 17
         }
       }
     }
