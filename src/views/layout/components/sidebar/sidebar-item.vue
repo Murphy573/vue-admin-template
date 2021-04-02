@@ -117,7 +117,7 @@ export default {
 
       // 嵌套激活
       &.is-active {
-        .el-submenu__title {
+        > .el-submenu__title {
           color: $--color-submenuTitleActiveText !important;
           background: $--color-submenuTitleActiveBg;
           font-weight: bold;
