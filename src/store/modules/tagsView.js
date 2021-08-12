@@ -24,13 +24,13 @@ export default {
       }
     },
     DEL_VISITED_VIEW: (state, view) => {
-      let _index = state.visitedViews.findIndex(v => v.name === view.name);
+      const _index = state.visitedViews.findIndex(v => v.name === view.name);
       if (_index !== -1) {
         state.visitedViews.splice(_index, 1);
       }
     },
     DEL_CACHED_VIEW: (state, view) => {
-      let _index = state.cachedViews.indexOf(view.meta.cached);
+      const _index = state.cachedViews.indexOf(view.meta.cached);
       _index > -1 && state.cachedViews.splice(_index, 1);
     },
     DEL_OTHERS_VISITED_VIEWS: (state, view) => {
@@ -39,7 +39,7 @@ export default {
       });
     },
     DEL_OTHERS_CACHED_VIEWS: (state, view) => {
-      let _index = state.cachedViews.indexOf(view.meta.cached);
+      const _index = state.cachedViews.indexOf(view.meta.cached);
       if (_index > -1) {
         state.cachedViews = state.cachedViews.slice(_index, _index + 1);
       }

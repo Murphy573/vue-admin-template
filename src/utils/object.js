@@ -15,16 +15,15 @@ export function deepClone (target) {
  * @param {Boolean} strict 严格模式
  */
 export function getPropByPath (obj, path, strict) {
-  /* eslint-disable */
   let tempObj = obj;
   path = path.replace(/\[(\w+)\]/g, '.$1');
   path = path.replace(/^\./, '');
 
-  let keyArr = path.split('.');
+  const keyArr = path.split('.');
   let i = 0;
   for (let len = keyArr.length; i < len - 1; ++i) {
     if (!tempObj && !strict) break;
-    let key = keyArr[i];
+    const key = keyArr[i];
     if (key in tempObj) {
       tempObj = tempObj[key];
     }

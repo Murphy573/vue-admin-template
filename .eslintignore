@@ -1,4 +1,4 @@
-chore*.sh
+*.sh
 node_modules
 *.md
 *.woff

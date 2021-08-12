@@ -36,7 +36,6 @@ export default {
   .logo {
     width: 20px;
     height: 20px;
-    border-radius: 50%;
   }
 
   .title {

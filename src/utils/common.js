@@ -40,10 +40,50 @@ export function isBoolean (target) {
   return transferTargetType(target) === '[object Boolean]';
 }
 
+// 判断是否是数字：数字字符串也认为是数字
 export function isNumber (target) {
-  return transferTargetType(target) === '[object Number]';
+  return /^[+-]?\d+(\.\d+)?([Ee][+-]?[\d]+)?$/.test(target);
 }
 
+/* 是否是纯对象 */
 export function isPlainObj (target) {
   return !isNull(target) && isObject(target);
 }
+
+/* 是否是promise */
+export function isPromise (target) {
+  if (transferTargetType(target) !== '[object Promise]') {
+    return target !== null &&
+    typeof target === 'object' &&
+     isFunction(target.then) &&
+      isFunction(target.catch);
+  }
+  return true;
+}
+
+/**
+ * 是否定义
+ */
+export function isDef (value) {
+  return !isUndefined(value) && !isNull(value);
+}
+
+// 等待毫秒数
+export function sleep (millisecond = 0) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve();
+    }, millisecond);
+  });
+}
+
+/**
+ * 增强error
+ * @param {String} msg 错误消息
+ * @param {String|Number} code 错误码
+ */
+export function enhanceError (msg = '', code) {
+  const _error = new Error(msg);
+  _error.code = code;
+  return _error;
+};

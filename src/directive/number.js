@@ -37,7 +37,7 @@ const createHandler = (
       _res = value.toString().replace(regexp, '');
     }
     else {
-      let _match = value.toString().match(regexp);
+      const _match = value.toString().match(regexp);
       if (_match != null) {
         _res = _match[0];
       }
@@ -93,7 +93,7 @@ const trigger = (el, type) => {
  */
 const NumberDirective = {
   bind (el, binding) {
-    let { arg = 'integer', value } = binding;
+    const { arg = 'integer', value } = binding;
     let max, min;
     // 如果是对象
     if (isPlainObj(value)) {

@@ -67,7 +67,7 @@ router.beforeEach((to, from, next) => {
       jumpDashboard(next);
     }
     else {
-      let _permissions = store.getters.vx_gt_GetPermissions;
+      const _permissions = store.getters.vx_gt_GetPermissions;
       if (!Array.isArray(_permissions) || !_permissions.length) {
         store
           .dispatch('vx_ac_GetUserInfo')
@@ -77,7 +77,7 @@ router.beforeEach((to, from, next) => {
           })
           .catch(error => {
             store.dispatch('vx_ac_FrontendLogout').then(() => {
-              Message.error(error || '用户校验失败，请重新登录！');
+              // Message.error(error || '用户校验失败，请重新登录！');
               jumpLogin(to, from, next);
             });
           });

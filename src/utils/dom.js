@@ -1,10 +1,12 @@
+import { isDef, isNumber } from './common';
+
 /**
  * 判断元素是否存在className
  * @param {Element} el
  * @param {String} className
  */
 export function hasClass (el, className) {
-  let reg = new RegExp('(^|\\s)' + className + '(\\s|$)');
+  const reg = new RegExp('(^|\\s)' + className + '(\\s|$)');
   return reg.test(el.className);
 }
 
@@ -18,7 +20,7 @@ export function addClass (el, className) {
     return;
   }
 
-  let newClass = el.className.split(' ');
+  const newClass = el.className.split(' ');
   newClass.push(className);
   el.className = newClass.join(' ');
 }
@@ -33,7 +35,7 @@ export function removeClass (el, className) {
     return;
   }
 
-  let reg = new RegExp('(^|\\s)' + className + '(\\s|$)', 'g');
+  const reg = new RegExp('(^|\\s)' + className + '(\\s|$)', 'g');
   el.className = el.className.replace(reg, ' ');
 }
 
@@ -44,7 +46,7 @@ export function removeClass (el, className) {
  * @param {Any} val
  */
 export function handleData (el, name, val) {
-  let prefix = 'data-';
+  const prefix = 'data-';
   if (val) {
     return el.setAttribute(prefix + name, val);
   }
@@ -53,7 +55,7 @@ export function handleData (el, name, val) {
 
 export function getRect (el) {
   if (el instanceof window.SVGElement) {
-    let rect = el.getBoundingClientRect();
+    const rect = el.getBoundingClientRect();
     return {
       top: rect.top,
       left: rect.left,
@@ -106,4 +108,18 @@ export function on (target, event, handler, passive = false) {
  */
 export function off (target, event, handler) {
   target.removeEventListener(event, handler);
+}
+
+/**
+ * 添加单位
+ * @param {String|Number} value size
+ * @param {String} suffix 单位 默认px
+ */
+export function addUnit (value, suffix = 'px') {
+  if (!isDef(value)) {
+    return undefined;
+  }
+
+  value = String(value);
+  return isNumber(value) ? `${value}${suffix}` : value;
 }

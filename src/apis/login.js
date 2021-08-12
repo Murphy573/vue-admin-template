@@ -1,14 +1,14 @@
-export function loginByUsername (username, password) {
+export function api_login_byUsername (username, password) {
   return Promise.resolve({
     token: Math.random()
   });
 }
 
-export function logout () {
+export function api_logout () {
   return Promise.resolve(true);
 }
 
-export function getUserInfo () {
+export function api_get_userInfo () {
   return Promise.resolve({
     roles: ['随便'],
     name: 'xxxx',

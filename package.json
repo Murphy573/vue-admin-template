@@ -8,9 +8,11 @@
     "start": "vue-cli-service serve",
     "lint": "vue-cli-service lint --max-warnings 0",
     "build": "npm run lint && vue-cli-service build --mode production",
+    "robot": "sh build/robot.sh",
     "svgo": "svgo -f src/icons/svg --config=src/icons/svgo.yml"
   },
   "dependencies": {
+    "@tinymce/tinymce-vue": "3.0.1",
     "axios": "0.18.1",
     "clipboard": "2.0.4",
     "element-ui": "^2.13.2",

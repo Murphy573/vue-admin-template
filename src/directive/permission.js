@@ -3,7 +3,7 @@ import CheckPermission from '@/utils/permission';
 const permission = {
   inserted (el, binding) {
     const { value } = binding;
-    let _hasPermission = CheckPermission(value);
+    const _hasPermission = CheckPermission(value);
     if (!_hasPermission) {
       el.parentNode && el.parentNode.removeChild(el);
     }

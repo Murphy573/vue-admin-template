@@ -19,7 +19,7 @@ $--color-submenuTitleActiveText: $--color-menu-primary;
 $--color-submenuTitleBg: #ffffff;
 $--color-submenuTitleHoverBg: rgba(
   $color: $--color-menu-primary,
-  $alpha: 0.1
+  $alpha: 0.1,
 );
 $--color-submenuTitleActiveBg: #ffffff;
 
@@ -28,12 +28,12 @@ $--color-submenuItemActiveText: #ffffff;
 $--color-submenuItemBg: #f3f4f5;
 $--color-submenuItemHoverBg: rgba(
   $color: $--color-menu-primary,
-  $alpha: 0.1
+  $alpha: 0.1,
 );
 $--color-submenuItemActiveBg: $--color-menu-primary;
 
 /* projet 主色 */
-$--color-primary-projet: #27BB4F;
+$--color-primary-projet: #27bb4f;
 /* nav */
 $--size-navHeight: 56px;
 /* tag */

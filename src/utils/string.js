@@ -37,10 +37,10 @@ export function capitalizeEveryWord (str) {
  * @returns {String} UUID
  */
 export function generateUUID (suffix) {
-  let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (
+  const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (
     c
   ) {
-    let r = (Math.random() * 16) | 0,
+    const r = (Math.random() * 16) | 0,
       v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
@@ -61,11 +61,11 @@ export function generateUUID (suffix) {
  * @template 8 character ID (base=16) generateUniqueIdByCustom(8, 16) // "098F4D35"
  */
 export function generateUniqueIdByCustom (len, radix) {
-  let chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split(
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split(
     ''
   );
-  let uuid = [],
-    i;
+  const uuid = [];
+  let i;
   radix = radix || chars.length;
 
   if (len) {
@@ -91,4 +91,12 @@ export function generateUniqueIdByCustom (len, radix) {
   }
 
   return uuid.join('');
+}
+
+/**
+ * 限制输入框小数点后两位
+ * @param {String} value 输入框的value
+ */
+export function inputDecimal (value) {
+  return value.match(/^\d*(\.?\d{0,2})/g)[0];
 }

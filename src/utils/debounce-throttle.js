@@ -8,9 +8,9 @@ const nowTimestamp = () => new Date().valueOf();
 export function debounce (func, wait, immediate = false) {
   let timeout, args, context, timestamp, result;
 
-  let later = function () {
+  const later = function () {
     // 当wait指定的时间间隔期间多次调用_.debounce返回的函数，则会不断更新timestamp的值，导致last < wait && last >= 0一直为true，从而不断启动新的计时器延时执行func
-    let last = nowTimestamp - timestamp;
+    const last = nowTimestamp - timestamp;
 
     if (last < wait && last >= 0) {
       timeout = setTimeout(later, wait - last);
@@ -29,7 +29,7 @@ export function debounce (func, wait, immediate = false) {
     args = arguments;
     timestamp = nowTimestamp();
     // 第一次调用该方法时，且immediate为true，则调用func函数
-    let callNow = immediate && !timeout;
+    const callNow = immediate && !timeout;
     // 在wait指定的时间间隔内首次调用该方法，则启动计时器定时调用func函数
     if (!timeout) timeout = setTimeout(later, wait);
     if (callNow) {
@@ -60,17 +60,17 @@ export function throttle (func, wait, options) {
   let timeout = null;
   let previous = 0;
   if (!options) options = {};
-  let later = function () {
+  const later = function () {
     previous = options.leading === false ? 0 : nowTimestamp();
     timeout = null;
     result = func.apply(context, args);
     if (!timeout) context = args = null;
   };
   return function () {
-    let now = nowTimestamp();
+    const now = nowTimestamp();
     if (!previous && options.leading === false) previous = now;
     // 计算剩余时间
-    let remaining = wait - (now - previous);
+    const remaining = wait - (now - previous);
     context = this;
     args = arguments;
     // 当到达wait指定的时间间隔，则调用func函数

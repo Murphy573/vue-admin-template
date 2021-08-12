@@ -4,7 +4,7 @@
 import MenuConfig from '@/configs/menu';
 import CheckPermission from '@/utils/permission';
 import { deepClone } from '@/utils/object';
-import Cookies from 'js-cookie';
+import Cookie from '@/utils/cookie';
 
 // 初始化激活的导航
 const INIT_ACTIVE_MENU = '';
@@ -39,7 +39,7 @@ export default {
     activeMenu: '',
     // 侧边栏展开收起状态
     sidebar: {
-      opened: !+Cookies.get('sidebarStatus'),
+      opened: !+Cookie.get('sidebarStatus'),
       withoutAnimation: false
     }
   },
@@ -52,10 +52,10 @@ export default {
     },
     TOGGLE_SIDEBAR: state => {
       if (state.sidebar.opened) {
-        Cookies.set('sidebarStatus', 1);
+        Cookie.set('sidebarStatus', 1);
       }
       else {
-        Cookies.set('sidebarStatus', 0);
+        Cookie.set('sidebarStatus', 0);
       }
       state.sidebar.opened = !state.sidebar.opened;
       state.sidebar.withoutAnimation = false;
@@ -74,8 +74,8 @@ export default {
   },
   actions: {
     vx_ac_GenerateMenus ({ commit }) {
-      let _MenuConfig = deepClone(MenuConfig);
-      let _menus = filterMenus(_MenuConfig);
+      const _MenuConfig = deepClone(MenuConfig);
+      const _menus = filterMenus(_MenuConfig);
       commit('SET_MENUS', _menus);
     },
     vx_ac_SetActiveMenu ({ commit }, menu = INIT_ACTIVE_MENU) {

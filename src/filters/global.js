@@ -12,10 +12,10 @@ export function date (target, format) {
  */
 export function NumberFormat (target, hold = 0, rounding = true) {
   if (Number.isNaN(Number(target))) return null;
-  let r = /^\+?[1-9][0-9]*$/;
+  const r = /^\+?[1-9][0-9]*$/;
   hold = r.test(hold) ? Number(hold) : 0;
   target = Number(target);
-  let _multiplier = Math.pow(10, hold);
+  const _multiplier = Math.pow(10, hold);
 
   if (rounding) {
     return Math.round(target * _multiplier) / _multiplier;
@@ -30,7 +30,7 @@ export function price (value, prefix = '¥') {
   if (Number.isNaN(Number(value))) return null;
 
   let _res = NumberFormat(value, 2);
-  let s = _res.toString().split('.');
+  const s = _res.toString().split('.');
   // 判断数组长度确定是否补0
   if (s.length === 1) {
     _res = _res.toString() + '.00';

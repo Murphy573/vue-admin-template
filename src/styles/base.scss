@@ -88,7 +88,7 @@ div:focus {
     vertical-align: middle;
     margin-bottom: 10px;
 
-    &~.filter-item {
+    & ~ .filter-item {
       margin-left: 10px;
     }
   }

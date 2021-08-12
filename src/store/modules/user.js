@@ -1,4 +1,8 @@
-import { loginByUsername, logout, getUserInfo } from '@/apis/login';
+import {
+  api_login_byUsername,
+  api_logout,
+  api_get_userInfo
+} from '@/apis/login';
 import { getToken, setToken, removeToken } from '@/utils/auth';
 
 const user = {
@@ -54,9 +58,9 @@ const user = {
     },
     // 用户名登录
     vx_ac_LoginByUsername ({ commit }, userInfo) {
-      const username = userInfo.username.trim();
+      userInfo.username = userInfo.username.trim();
       return new Promise((resolve, reject) => {
-        loginByUsername(username, userInfo.password)
+        api_login_byUsername(userInfo)
           .then(res => {
             commit('SET_TOKEN', res.token);
             resolve();
@@ -69,14 +73,9 @@ const user = {
     // 获取用户信息
     vx_ac_GetUserInfo ({ commit, state, dispatch }) {
       return new Promise((resolve, reject) => {
-        getUserInfo(state.token)
+        api_get_userInfo(state.token)
           .then(res => {
-            let _userInfo = {
-              name: res.name,
-              avatar: res.avatar
-            };
-            // 权限码
-            let permissions = res.privilegeCodes;
+            const { privilegeCodes: permissions, roles, ..._userInfo } = res;
 
             if (
               !permissions ||
@@ -100,7 +99,7 @@ const user = {
     // 登出
     vx_ac_Logout ({ dispatch, state }) {
       return new Promise((resolve, reject) => {
-        logout(state.token)
+        api_logout(state.token)
           .then(() => {
             dispatch('vx_ac_FrontendLogout');
             dispatch('vx_ac_ResetSidebarState');

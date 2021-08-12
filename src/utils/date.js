@@ -27,9 +27,9 @@ export function toDate (time) {
 export function formatDate (time, fmt = 'YYYY-MM-DD') {
   if (!time) return '';
 
-  let _time = toDate(time);
+  const _time = toDate(time);
 
-  let o = {
+  const o = {
     'M+': _time.getMonth() + 1, // 月份
     'D+': _time.getDate(), // 日
     'H+': _time.getHours(), // 小时
@@ -44,7 +44,7 @@ export function formatDate (time, fmt = 'YYYY-MM-DD') {
       (_time.getFullYear() + '').substr(4 - RegExp.$1.length)
     );
   }
-  for (let k in o) {
+  for (const k in o) {
     if (new RegExp('(' + k + ')').test(fmt)) {
       fmt = fmt.replace(
         RegExp.$1,
@@ -60,7 +60,7 @@ export function formatDate (time, fmt = 'YYYY-MM-DD') {
  * @param {String | Number | Date} time 日期
  */
 export function getCurrentMonthDays (time) {
-  let _time = new Date(time);
+  const _time = new Date(time);
   return new Date(_time.getFullYear(), _time.getMonth() + 1, 0).getDate();
 }
 
@@ -73,7 +73,7 @@ export function getDiffDays (date1, date2) {
   if (!date1 || !date2) {
     return -1;
   }
-  let _d1 = new Date(date1).getTime(),
+  const _d1 = new Date(date1).getTime(),
     _d2 = new Date(date2).getTime();
   const ONE_DAY = 24 * 60 * 60 * 1000; // 一天的毫秒数
   return Math.abs(Math.floor((_d2 - _d1) / ONE_DAY));

@@ -1,4 +1,4 @@
-// vue.config.js 配置
+// vue.config.js
 const path = require('path');
 const resolve = dir => path.join(__dirname, dir);
 // 环境变量
@@ -8,7 +8,7 @@ const webpackConfigDev = require('./build/webpack.dev.conf');
 const webpackConfigProd = require('./build/webpack.prod.conf');
 
 module.exports = {
-  publicPath: '/',
+  publicPath: ENV.publicPath,
   outputDir: ENV.outputDir,
   // 放置生成的静态资源 (js、css、img、fonts) 的 (相对于 outputDir 的) 目录。
   assetsDir: 'static/z',
@@ -56,11 +56,13 @@ module.exports = {
         symbolId: 'icon-[name]'
       })
       .end();
+
+    // config.optimization.splitChunks({});
   },
   // https://cli.vuejs.org/zh/config/#css-modules
   css: {
+    // 是否开启 CSS source map？
     sourceMap: !!IS_PRODUCTION,
-    // requireModuleExtension: false,
     extract: !!IS_PRODUCTION,
     loaderOptions: {
       // 给 sass-loader 传递选项
@@ -82,7 +84,8 @@ module.exports = {
     // 配置多个代理
     proxy: {
       '^/admin/': {
-        target: 'http://10.181.4.228:23456',
+        // beta
+        target: 'http://47.96.39.24:23456/',
         changeOrigin: true
       }
     }

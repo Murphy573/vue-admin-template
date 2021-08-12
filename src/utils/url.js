@@ -6,8 +6,8 @@ import { isPlainObj } from './common';
  * @returns {String} 参数值
  */
 export function getUrlParam (name, url = null) {
-  let reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
-  let r = url
+  const reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+  const r = url
     ? new URL(url).search.substr(1).match(reg)
     : window.location.search.substr(1).match(reg);
   if (r != null) return unescape(r[2]);
@@ -24,15 +24,18 @@ export function convertUrlParam2Obj (url) {
   if (!search) {
     return {};
   }
-  return JSON.parse(
-    '{"' +
-      decodeURIComponent(search)
-        .replace(/"/g, '\\"')
-        .replace(/&/g, '","')
-        .replace(/=/g, '":"')
-        .replace(/\+/g, ' ') +
-      '"}'
-  );
+  const paramPairs = search.split('&');
+  const finalObj = {};
+
+  for (let pair of paramPairs) {
+    // 因为存在base64参数（带有=号），所以获取第一个等号
+    let equalFlagIndex = pair.indexOf('=');
+    if (equalFlagIndex < 0) continue;
+    const attr = pair.substring(0, equalFlagIndex);
+    const value = pair.substring(equalFlagIndex + 1);
+    finalObj[attr] = value;
+  }
+  return finalObj;
 }
 
 /**
@@ -58,8 +61,8 @@ export function appendUrlParams (url, paramObj) {
   if (!url) return '';
   if (!paramObj || !isPlainObj(paramObj)) return url;
 
-  let paramArr = [];
-  for (let key in paramObj) {
+  const paramArr = [];
+  for (const key in paramObj) {
     paramArr.push(`${key}=${paramObj[key]}`);
   }
 

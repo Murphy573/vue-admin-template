@@ -1,44 +1,77 @@
+import { isNull, isUndefined } from './common';
+import { appendStoragePrefix, removeStoragePrefix } from './storage-prefix';
+
+const returnValue = (value) => {
+  if (isNull(value)) {
+    return undefined;
+  }
+  return value;
+};
+
 const getItem = (type, args) => {
-  if (!args.length || !type) return null;
-  else if (args.length === 1) {
-    return window[type].getItem(args[0]);
+  if (!args.length || !type) return;
+
+  if (args.length === 1) {
+    return returnValue(window[type].getItem(appendStoragePrefix(args[0])));
   }
   else {
     const storage = {};
     args.forEach(arg => {
-      storage[arg] = window[type].getItem(arg) || null;
+      storage[arg] = returnValue(window[type].getItem(appendStoragePrefix(arg)));
     });
     return storage;
   }
 };
 
 const setItem = (type, args) => {
-  if (!args.length || !type) return null;
-  else if (
+  if (!args.length || !type) return;
+
+  if (
     args.length === 1 &&
     Object.prototype.toString.call(args[0]) === '[object Object]'
   ) {
     let data = args[0];
     Object.keys(data).forEach(key => {
       let value = data[key];
-      window[type].setItem(key, value);
+      if (!isUndefined(value)) {
+        window[type].setItem(appendStoragePrefix(key), value);
+      }
     });
   }
   else {
-    window[type].setItem(args[0], args[1]);
+    if (!isUndefined(args[1])) {
+      window[type].setItem(appendStoragePrefix(args[0]), args[1]);
+    }
   }
 };
 
 const removeItem = (type, args) => {
-  if (!args.length || !type) return null;
-  else if (args.length === 1) {
-    window[type].removeItem(args[0]);
+  if (!args.length || !type) return;
+
+  if (args.length === 1) {
+    window[type].removeItem(appendStoragePrefix(args[0]));
   }
   else {
     args.forEach(arg => {
-      window[type].removeItem(arg);
+      window[type].removeItem(appendStoragePrefix(arg));
     });
   }
+};
+
+const getAllItems = type => {
+  if (!type) return {};
+  let _storage = window[type];
+  let _len = _storage.length;
+  let i = 0;
+  let _res = {};
+  while (i < _len) {
+    let _key = _storage.key(i),
+      _value = _storage.getItem(_key);
+    _res[removeStoragePrefix(_key)] = _value;
+    i++;
+  }
+
+  return _res;
 };
 
 /**
@@ -77,6 +110,18 @@ const build = type => {
      */
     removeItem (...args) {
       removeItem(this.type, args);
+    },
+    /**
+     * 清空缓存
+     */
+    clear () {
+      window[this.type].clear();
+    },
+    /**
+     * 获取所有存储
+     */
+    getAll () {
+      return getAllItems(this.type);
     }
   };
 };

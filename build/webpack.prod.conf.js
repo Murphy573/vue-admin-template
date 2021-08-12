@@ -2,7 +2,7 @@ const path = require('path');
 const OS = require('os');
 // 环境变量
 const ENV = process.env;
-// tree-shaking
+// 多进程压缩
 const HappyPack = require('happypack');
 // gzip压缩插件
 const CompressionWebpackPlugin = require('compression-webpack-plugin');
@@ -28,7 +28,7 @@ let _plugins = [
 ];
 
 // 如果执行build命令，添加gzip压缩
-if (ENV.VUE_APP_ENV === 'production') {
+if (ENV.VUE_APP_ENV === 'production' && ENV.IS_GZIP === 'true') {
   const _cwp = new CompressionWebpackPlugin({
     algorithm: 'gzip',
     deleteOriginalAssets: true,

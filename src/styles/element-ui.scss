@@ -1,12 +1,12 @@
 // cover some element-ui styles
+
 /* 改变主题色变量 */
-$--color-primary: #27BB4F;
-$--color-danger: #E2464A;
+$--color-primary: #27bb4f;
+$--color-danger: #e2464a;
 /* 改变 icon 字体路径变量，必需 */
 $--font-path: '~element-ui/lib/theme-chalk/fonts';
 
-@import "~element-ui/packages/theme-chalk/src/index";
-
+@import '~element-ui/packages/theme-chalk/src/index';
 
 .el-breadcrumb__inner,
 .el-breadcrumb__inner a {
@@ -44,7 +44,6 @@ $--font-path: '~element-ui/lib/theme-chalk/fonts';
   margin: 0 auto;
 }
 
-
 // dropdown
 .el-dropdown-menu {
   a {
@@ -80,4 +79,30 @@ $--font-path: '~element-ui/lib/theme-chalk/fonts';
       margin-bottom: 0 !important;
     }
   }
+}
+
+.danger.el-button--text {
+  color: $--color-danger;
+
+  &.is-disabled {
+    color: #c0c4cc;
+    cursor: not-allowed;
+    background-image: none;
+    background-color: transparent;
+    border-color: transparent;
+  }
+}
+
+.el-button + .el-dropdown {
+  margin-left: 10px;
+}
+
+.input--mini-width {
+  width: 100px;
+}
+.input--small-width {
+  width: 280px;
+}
+.input--normal-width {
+  width: 400px;
 }

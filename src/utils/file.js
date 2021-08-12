@@ -42,7 +42,9 @@ export function dataURLtoBlob (dataUrl) {
   while (n--) {
     u8arr[n] = bstr.charCodeAt(n);
   }
-  return new Blob([u8arr], { type: mime });
+  return new Blob([u8arr], {
+    type: mime
+  });
 }
 
 /**
@@ -60,7 +62,9 @@ export function dataURLtoFile (dataUrl, filename) {
   while (n--) {
     u8arr[n] = bstr.charCodeAt(n);
   }
-  return new File([u8arr], filename, { type: mime });
+  return new File([u8arr], filename, {
+    type: mime
+  });
 }
 
 /**
@@ -74,11 +78,11 @@ export function dataURLtoFile (dataUrl, filename) {
  */
 export async function imageCompress (
   fileRaw,
+  encoder = 0.3,
   maxTimes = 5,
   maxSize = null,
   WHSize = null,
-  outputType = 'jpeg',
-  encoder = 0.3
+  outputType = 'jpeg'
 ) {
   // 如果传入的图片在最大范围内，直接返回，不作处理
   if (maxSize && fileRaw.size / 1024 < maxSize) {
@@ -90,14 +94,14 @@ export async function imageCompress (
     _time = 0,
     _fileRaw = fileRaw;
 
-  let _compress = () => {
+  const _compress = () => {
     return new Promise((resolve, reject) => {
       readBlobAsDataURL(_fileRaw, function (dataUrl) {
         let img = new Image();
         img.src = dataUrl;
         img.onload = function () {
           // 获取图片的原始尺寸
-          let originW = this.width,
+          const originW = this.width,
             originH = this.height;
           // 目标尺寸
           let targetWidth = originW,
@@ -105,7 +109,10 @@ export async function imageCompress (
 
           if (WHSize) {
             // 图片尺寸超过w * h的限制
-            let { w: maxWidth, h: maxHeight } = WHSize;
+            const {
+              w: maxWidth,
+              h: maxHeight
+            } = WHSize;
             if (originW > maxWidth || originH > maxHeight) {
               // 更宽，按照宽度限定尺寸
               if (originW / originH > maxWidth / maxHeight) {
@@ -127,7 +134,7 @@ export async function imageCompress (
           // 绘图
           ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
           // 从canvas输出图片
-          let _finalData = canvasToDataUrl(
+          const _finalData = canvasToDataUrl(
             canvas,
             `image/${outputType}`,
             encoder
@@ -162,16 +169,29 @@ export async function imageCompress (
  * 普通文件下载
  * @param {ArrayBuffer} content
  * @param {String} filename
+ * @param {Boolean} isArrayBuffer 是否是二进制数据，否则被认为是url下载
  */
-export function fileDownload (content, filename) {
+export function fileDownload (content, filename, isArrayBuffer = true) {
   // 创建隐藏的可下载链接
   const eleLink = document.createElement('a');
   eleLink.download = filename;
   eleLink.style.display = 'none';
-  // 字符内容转变成blob地址
-  const blob = new Blob([content]);
-  let _url = window.URL.createObjectURL(blob);
+
+  let _url = '';
+  if (isArrayBuffer) {
+    // 字符内容转变成blob地址
+    const blob = new Blob([content]);
+    _url = window.URL.createObjectURL(blob);
+  }
+  else {
+    _url = content;
+  }
+
   eleLink.href = _url;
+  // 兼容：某些浏览器不支持HTML5的download属性
+  if (typeof eleLink.download === 'undefined') {
+    eleLink.setAttribute('target', '_blank');
+  }
   // 触发点击
   document.body.appendChild(eleLink);
   eleLink.click();
@@ -179,4 +199,46 @@ export function fileDownload (content, filename) {
   document.body.removeChild(eleLink);
   // 释放掉blob对象
   window.URL.revokeObjectURL(_url);
+}
+
+/**
+ * 根据AJAX加载文件流
+ * @param {String} url
+ */
+export function loadFileByXHR (url, responseType = 'arraybuffer') {
+  return new Promise((resolve, reject) => {
+    let xhr = new XMLHttpRequest();
+    xhr.responseType = responseType;
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        resolve(xhr.response);
+      }
+    };
+    xhr.onerror = function (error) {
+      reject(error);
+    };
+    xhr.onabort = function (error) {
+      reject(error);
+    };
+    xhr.open('GET', url, true);
+    xhr.send();
+  });
+}
+/**
+ * 通过url下载文件
+ * @param {String} url
+ * @param {String} filename
+ */
+export function fileDownloadByUrl (url, filename = '') {
+  // 创建隐藏的可下载链接
+  const eleLink = document.createElement('a');
+  filename && (eleLink.download = filename);
+  eleLink.style.display = 'none';
+  eleLink.href = url;
+  // 触发点击
+  document.body.appendChild(eleLink);
+  eleLink.click();
+  // 然后移除
+  document.body.removeChild(eleLink);
 }
