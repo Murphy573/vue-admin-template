@@ -21,9 +21,16 @@
         class="actions"
         @click.stop>
         <i class="el-icon-edit-outline"
+          title="替换图片"
           @click.stop="handleEdit"></i>
         <i class="el-icon-delete"
+          title="删除图片"
           @click.stop="handleRemove"></i>
+        <!-- 操作插槽 -->
+        <slot name="action"
+          :url="value"
+          :index="mutipleIndex"
+          @click.stop></slot>
       </span>
     </div>
   </el-upload>
@@ -208,7 +215,8 @@ export default {
     -webkit-transition: opacity 0.3s;
     transition: opacity 0.3s;
 
-    > i {
+    i,
+    /deep/ i {
       cursor: pointer;
 
       & + i {

@@ -8,7 +8,13 @@
         v-bind="$attrs"
         nest-in-mutiple
         show-actions
-        @on-mutiple-remove="handleRemove" />
+        @on-mutiple-remove="handleRemove">
+        <template #action="{url, index}">
+          <slot name="action"
+            :url="url"
+            :index="index"></slot>
+        </template>
+      </SingleImage>
     </div>
     <SingleImage v-bind="$attrs"
       nest-in-mutiple
