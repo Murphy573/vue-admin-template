@@ -18,6 +18,13 @@ export default [
     },
   },
   {
+    name: 'imgPreview',
+    meta: {
+      icon: 'dashboard',
+      title: 'imgPreview',
+    },
+  },
+  {
     name: 'eg',
     meta: {
       icon: 'chart',
