@@ -1,15 +1,15 @@
 <template>
-  <el-breadcrumb class="app-breadcrumb"
-    separator="/">
+  <el-breadcrumb class="app-breadcrumb" separator="/">
     <transition-group name="breadcrumb">
-      <el-breadcrumb-item v-for="(item,index) in levelList"
-        :key="item.path">
-        <span v-if="item.forbiddenJump || index === levelList.length-1"
+      <el-breadcrumb-item v-for="(item, index) in levelList" :key="item.path">
+        <span
+          v-if="item.forbiddenJump || index === levelList.length - 1"
           class="no-redirect">
           {{ generateTitle(item.breadcrumbName) }}
         </span>
-        <a v-else
-          @click.prevent="handleLink(item)">{{ generateTitle(item.breadcrumbName) }}</a>
+        <a v-else @click.prevent="handleLink(item)">{{
+          generateTitle(item.breadcrumbName)
+        }}</a>
       </el-breadcrumb-item>
     </transition-group>
   </el-breadcrumb>
@@ -17,31 +17,31 @@
 
 <script>
 export default {
-  data () {
+  data() {
     return {
-      levelList: null
+      levelList: null,
     };
   },
   watch: {
-    $route (route) {
+    $route(route) {
       // if you go to the redirect page, do not update the breadcrumbs
       if (route.path.startsWith('/redirect/')) {
         return;
       }
       this.getBreadcrumb();
-    }
+    },
   },
-  created () {
+  created() {
     this.getBreadcrumb();
   },
   methods: {
-    generateTitle (title) {
+    generateTitle(title) {
       return this.$t(`navigation.${title}`);
     },
-    getBreadcrumb () {
+    getBreadcrumb() {
       const _matchedRoutes = this.$route.matched;
       let _breads = [];
-      _matchedRoutes.forEach(router => {
+      _matchedRoutes.forEach((router) => {
         if (router.meta.breadcrumb) {
           _breads.push({
             name: router.name,
@@ -49,7 +49,7 @@ export default {
             params: router.params,
             path: router.path,
             forbiddenJump: router.meta.forbiddenJump,
-            breadcrumbName: router.meta.breadcrumb
+            breadcrumbName: router.meta.breadcrumb,
           });
         }
       });
@@ -57,26 +57,34 @@ export default {
       // 检验是否有dashboard
       const first = _breads[0];
       if (!this.isDashboard(first)) {
-        _breads = [{ path: '/dashboard', name: 'dashboard', breadcrumbName: 'dashboard' }].concat(_breads);
+        _breads = [
+          {
+            path: '/dashboard',
+            name: 'dashboard',
+            breadcrumbName: 'dashboard',
+          },
+        ].concat(_breads);
       }
 
       this.levelList = _breads;
     },
-    isDashboard (route) {
+    isDashboard(route) {
       const name = route && route.name;
       if (!name) {
         return false;
       }
-      return name.trim().toLocaleLowerCase() === 'Dashboard'.toLocaleLowerCase();
+      return (
+        name.trim().toLocaleLowerCase() === 'Dashboard'.toLocaleLowerCase()
+      );
     },
-    handleLink (item) {
+    handleLink(item) {
       this.$router.push({
         name: item.name,
         query: item.query,
-        params: item.params
+        params: item.params,
       });
-    }
-  }
+    },
+  },
 };
 </script>
 

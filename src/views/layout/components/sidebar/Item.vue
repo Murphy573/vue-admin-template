@@ -5,14 +5,14 @@ export default {
   props: {
     icon: {
       type: String,
-      default: ''
+      default: '',
     },
     title: {
       type: String,
-      default: ''
-    }
+      default: '',
+    },
   },
-  render (h, context) {
+  render(h, context) {
     const { icon, title } = context.props;
     const vnodes = [];
 
@@ -21,9 +21,9 @@ export default {
     }
 
     if (title) {
-      vnodes.push(<span slot='title'>{(title)}</span>);
+      vnodes.push(<span slot="title">{title}</span>);
     }
     return vnodes;
-  }
+  },
 };
 </script>

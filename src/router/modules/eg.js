@@ -8,7 +8,7 @@ export default {
   meta: {
     breadcrumb: 'eg',
     forbiddenJump: true,
-    title: 'eg'
+    title: 'eg',
   },
   redirect: { name: 'eg1', replace: true },
   children: [
@@ -20,8 +20,8 @@ export default {
         menuMapper: 'eg1',
         breadcrumb: 'eg1',
         title: 'eg1',
-        permissions: ['CODE2']
-      }
+        permissions: ['CODE2'],
+      },
     },
     {
       path: 'eg2',
@@ -32,8 +32,8 @@ export default {
         menuMapper: 'eg2',
         breadcrumb: 'eg2',
         title: 'eg2',
-        cached: 'Eg2'
-      }
+        cached: 'Eg2',
+      },
     },
     {
       path: 'eg3',
@@ -43,7 +43,7 @@ export default {
         menuMapper: 'eg3',
         breadcrumb: 'eg3',
         title: 'eg3',
-        forbiddenJump: true
+        forbiddenJump: true,
       },
       redirect: { name: 'eg33', replace: true },
       children: [
@@ -55,10 +55,10 @@ export default {
             menuMapper: 'eg33',
             breadcrumb: 'eg33',
             title: 'eg33',
-            permissions: ['CODE1']
-          }
-        }
-      ]
+            permissions: ['CODE1'],
+          },
+        },
+      ],
     },
     {
       path: 'eg4',
@@ -66,7 +66,7 @@ export default {
       name: 'eg4',
       meta: {
         breadcrumb: 'eg4',
-        title: 'eg4'
+        title: 'eg4',
       },
       redirect: { name: 'eg44', replace: true },
       children: [
@@ -76,8 +76,8 @@ export default {
           name: 'eg44',
           meta: {
             menuMapper: 'eg4',
-            title: 'eg4'
-          }
+            title: 'eg4',
+          },
         },
         {
           path: 'detail',
@@ -86,10 +86,10 @@ export default {
           meta: {
             menuMapper: 'eg4',
             breadcrumb: 'detail',
-            title: 'detail'
-          }
-        }
-      ]
-    }
-  ]
+            title: 'detail',
+          },
+        },
+      ],
+    },
+  ],
 };

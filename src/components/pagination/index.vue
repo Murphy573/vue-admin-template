@@ -1,8 +1,10 @@
 <template>
-  <div v-show="total > 0"
-    :class="{'hidden':hidden}"
+  <div
+    v-show="total > 0"
+    :class="{ hidden: hidden }"
     class="pagination-container">
-    <el-pagination :background="background"
+    <el-pagination
+      :background="background"
       :current-page.sync="cmpt_currentPage"
       :page-size.sync="cmpt_pageSize"
       :page-sizes="pageSizes"
@@ -20,61 +22,61 @@ export default {
   props: {
     total: {
       required: true,
-      type: Number
+      type: Number,
     },
     currentPage: {
       type: Number,
-      default: 1
+      default: 1,
     },
     pageSize: {
       type: Number,
-      default: 20
+      default: 20,
     },
     pageSizes: {
       type: Array,
-      default () {
+      default() {
         return [10, 15, 20, 30, 50];
-      }
+      },
     },
     layout: {
       type: String,
-      default: 'total, sizes, prev, pager, next, jumper'
+      default: 'total, sizes, prev, pager, next, jumper',
     },
     background: {
       type: Boolean,
-      default: true
+      default: true,
     },
     hidden: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   computed: {
     cmpt_currentPage: {
-      get () {
+      get() {
         return this.currentPage;
       },
-      set (val) {
+      set(val) {
         this.$emit('update:currentPage', val);
-      }
+      },
     },
     cmpt_pageSize: {
-      get () {
+      get() {
         return this.pageSize;
       },
-      set (val) {
+      set(val) {
         this.$emit('update:pageSize', val);
-      }
-    }
+      },
+    },
   },
   methods: {
-    handleSizeChange (val) {
+    handleSizeChange(val) {
       this.$emit('pagination', { page: this.currentPage, limit: val });
     },
-    handleCurrentChange (val) {
+    handleCurrentChange(val) {
       this.$emit('pagination', { page: val, limit: this.pageSize });
-    }
-  }
+    },
+  },
 };
 </script>
 

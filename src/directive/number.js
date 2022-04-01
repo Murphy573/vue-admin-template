@@ -2,7 +2,8 @@ import { isRegExp, isPlainObj } from '@/utils/common';
 import { debounce } from '@/utils/debounce-throttle';
 
 /* 限制输入框只能输入number类型 */
-const Price_Pattern = /(^[1-9]([0-9]+)?(\.[0-9]{1,2})?)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?)/;
+const Price_Pattern =
+  /(^[1-9]([0-9]+)?(\.[0-9]{1,2})?)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?)/;
 const Integer_Pattern = /^(0|[1-9]\d*)/;
 
 const REGEXP_MODIFIERS = ['replace', 'match'];
@@ -31,17 +32,15 @@ const createHandler = (
   /**
    * 返回处理函数
    */
-  return value => {
+  return (value) => {
     let _res;
     if (modifier === 'replace') {
       _res = value.toString().replace(regexp, '');
-    }
-    else {
+    } else {
       const _match = value.toString().match(regexp);
       if (_match != null) {
         _res = _match[0];
-      }
-      else {
+      } else {
         _res = null;
       }
     }
@@ -92,14 +91,13 @@ const trigger = (el, type) => {
  *    2、输入对象{min, max},指定最小值和最大值
  */
 const NumberDirective = {
-  bind (el, binding) {
+  bind(el, binding) {
     const { arg = 'integer', value } = binding;
     let max, min;
     // 如果是对象
     if (isPlainObj(value)) {
       ({ max, min } = value);
-    }
-    else {
+    } else {
       max = value;
       min = 0;
     }
@@ -114,8 +112,7 @@ const NumberDirective = {
 
     if (arg === 'integer') {
       handler = IntegerHandle(max, min);
-    }
-    else {
+    } else {
       handler = PriceHandle(max, min);
     }
     // 监听事件，去抖的方式执行处理函数
@@ -127,7 +124,7 @@ const NumberDirective = {
       _input.value = handler(_input.value);
       trigger(_input, 'input');
     }, 1000);
-  }
+  },
 };
 
 export default function (Vue) {

@@ -1,5 +1,6 @@
 <template>
-  <el-upload ref="uploader"
+  <el-upload
+    ref="uploader"
     :action="uploadPath"
     :show-file-list="false"
     :headers="uploadHeader"
@@ -7,27 +8,28 @@
     :on-success="uploadSuccess"
     :accept="accept"
     :disabled="disabled">
-    <div class="single-uploader"
-      :class="{disabled:disabled}"
+    <div
+      class="single-uploader"
+      :class="{ disabled: disabled }"
       :style="containerStyle">
+      <img v-if="src" :src="src" class="img" />
+      <i v-else class="el-icon-plus uploader-icon" />
 
-      <img v-if="src"
-        :src="src"
-        class="img">
-      <i v-else
-        class="el-icon-plus uploader-icon" />
-
-      <span v-show="showActions && src && !disabled"
+      <span
+        v-show="showActions && src && !disabled"
         class="actions"
         @click.stop>
-        <i class="el-icon-edit-outline"
+        <i
+          class="el-icon-edit-outline"
           title="替换图片"
           @click.stop="handleEdit"></i>
-        <i class="el-icon-delete"
+        <i
+          class="el-icon-delete"
           title="删除图片"
           @click.stop="handleRemove"></i>
         <!-- 操作插槽 -->
-        <slot name="action"
+        <slot
+          name="action"
           :url="value"
           :index="mutipleIndex"
           @click.stop></slot>
@@ -52,31 +54,31 @@ export default {
     disabled: Boolean,
     width: {
       type: Number,
-      default: 145
+      default: 145,
     },
     height: {
       type: Number,
-      default: 145
+      default: 145,
     },
     accept: {
       type: String,
-      default: '.jpg,.jpeg,.png,.gif'
+      default: '.jpg,.jpeg,.png,.gif',
     },
     // 图片限定大小：单位M
     limit: {
       type: Number,
-      default: 20
+      default: 20,
     },
     openCompress: {
       type: Boolean,
-      default: false
+      default: false,
     },
     compressRatio: {
       type: Number,
       default: 0.3,
-      validate (v) {
+      validate(v) {
         return v > 0 && v < 1;
-      }
+      },
     },
     // 是否展示操作按钮：删除，预览等
     showActions: Boolean,
@@ -85,39 +87,41 @@ export default {
     // 在多图片上传组件中的index
     mutipleIndex: Number,
     // 是否仅添加，不展示上传后的图片
-    additional: Boolean
+    additional: Boolean,
   },
 
-  data () {
+  data() {
     return {
       uploadPath,
       uploadHeader: {
-        'Emall-Admin-Token': getToken()
-      }
+        'Emall-Admin-Token': getToken(),
+      },
     };
   },
 
   computed: {
     src: {
-      set (v) {
+      set(v) {
         this.$emit('input', v);
       },
-      get () {
+      get() {
         return convertImgAddress(this.value);
-      }
+      },
     },
-    containerStyle () {
+    containerStyle() {
       return {
         width: this.width + 'px',
-        height: this.height + 'px'
+        height: this.height + 'px',
       };
-    }
+    },
   },
 
   methods: {
-    beforeUpload (file) {
+    beforeUpload(file) {
       return new Promise((resolve, reject) => {
-        const imgType = file.name.slice(file.name.lastIndexOf('.') + 1).toLowerCase();
+        const imgType = file.name
+          .slice(file.name.lastIndexOf('.') + 1)
+          .toLowerCase();
         const isAccept = this.accept.indexOf(imgType) > -1;
         // 图片size提示
         const isLimit = file.size / 1024 <= this.limit * 1024;
@@ -131,34 +135,37 @@ export default {
           reject(new Error(`图片大小不能超过 ${this.limit}M!`));
           return;
         }
-        if (file.size <= NOT_CONPRESS_SIZE || !this.openCompress || imgType === 'gif') {
+        if (
+          file.size <= NOT_CONPRESS_SIZE ||
+          !this.openCompress ||
+          imgType === 'gif'
+        ) {
           resolve(file);
           return;
         }
-        imageCompress(file, this.compressRatio).then(res => {
+        imageCompress(file, this.compressRatio).then((res) => {
           resolve(res);
         });
       });
     },
-    uploadSuccess (res) {
+    uploadSuccess(res) {
       if (!this.additional) {
         this.src = res.data.url;
       }
       this.$emit('upload-success', res.data.url);
     },
-    handleEdit () {
+    handleEdit() {
       // HACK: 查看源码得知如此触发选择文件框
       this.$refs.uploader.$refs['upload-inner'].handleClick();
     },
-    handleRemove () {
+    handleRemove() {
       if (!this.nestInMutiple) {
         this.src = '';
-      }
-      else {
+      } else {
         this.$emit('on-mutiple-remove', this.mutipleIndex);
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

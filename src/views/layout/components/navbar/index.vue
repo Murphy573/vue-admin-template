@@ -1,34 +1,32 @@
 <template>
   <div class="navbar">
-    <Hamburger :is-active="vx_gt_Sidebar.opened"
+    <Hamburger
+      :is-active="vx_gt_Sidebar.opened"
       @toggle-click="vx_ac_ToggleSideBar"
       class="hamburger-container" />
 
     <Breadcrumb class="breadcrumb-container" />
 
     <div class="right-menu">
-      <el-tooltip content="全屏"
-        effect="dark"
-        placement="bottom">
+      <el-tooltip content="全屏" effect="dark" placement="bottom">
         <screenfull class="screenfull right-menu-item hover-effect" />
       </el-tooltip>
 
-      <el-dropdown class="avatar-container right-menu-item"
-        trigger="click">
+      <el-dropdown class="avatar-container right-menu-item" trigger="click">
         <div class="avatar-wrapper">
-          <img :src="cmpt_UserInfo.avatar+'?imageView2/1/w/80/h/80'"
-            class="user-avatar">
+          <img
+            :src="cmpt_UserInfo.avatar + '?imageView2/1/w/80/h/80'"
+            class="user-avatar" />
           <i class="el-icon-caret-bottom" />
         </div>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item>
-            <router-link :to="{name: 'changePassword'}">
+            <router-link :to="{ name: 'changePassword' }">
               密码修改
             </router-link>
           </el-dropdown-item>
           <el-dropdown-item divided>
-            <span style="display:block;"
-              @click="logout">退出</span>
+            <span style="display: block" @click="logout">退出</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
@@ -46,25 +44,22 @@ export default {
   components: {
     Breadcrumb,
     Hamburger,
-    Screenfull
+    Screenfull,
   },
   computed: {
-    ...mapGetters([
-      'vx_gt_Sidebar',
-      'vx_gt_GetUserInfo'
-    ]),
-    cmpt_UserInfo () {
+    ...mapGetters(['vx_gt_Sidebar', 'vx_gt_GetUserInfo']),
+    cmpt_UserInfo() {
       return this.vx_gt_GetUserInfo || {};
-    }
+    },
   },
   methods: {
     ...mapActions(['vx_ac_ToggleSideBar', 'vx_ac_Logout']),
-    logout () {
+    logout() {
       this.vx_ac_Logout().then(() => {
         window.location.reload();
       });
-    }
-  }
+    },
+  },
 };
 </script>
 

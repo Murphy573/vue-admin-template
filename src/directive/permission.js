@@ -1,13 +1,13 @@
 import CheckPermission from '@/utils/permission';
 
 const permission = {
-  inserted (el, binding) {
+  inserted(el, binding) {
     const { value } = binding;
     const _hasPermission = CheckPermission(value);
     if (!_hasPermission) {
       el.parentNode && el.parentNode.removeChild(el);
     }
-  }
+  },
 };
 
 export default function (Vue) {

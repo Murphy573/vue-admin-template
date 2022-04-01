@@ -1,6 +1,7 @@
 <template>
   <div class="login-container">
-    <el-form ref="loginForm"
+    <el-form
+      ref="loginForm"
       :model="loginForm"
       :rules="loginRules"
       class="login-form"
@@ -13,7 +14,8 @@
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
-        <el-input v-model="loginForm.username"
+        <el-input
+          v-model="loginForm.username"
           name="username"
           type="text"
           tabindex="1"
@@ -25,7 +27,8 @@
         <span class="svg-container">
           <svg-icon icon-class="password" />
         </span>
-        <el-input v-model="loginForm.password"
+        <el-input
+          v-model="loginForm.password"
           :type="passwordType"
           name="password"
           auto-complete="on"
@@ -35,18 +38,18 @@
           @keyup.enter.native="handleLogin" />
       </el-form-item>
 
-      <el-button :loading="loading"
+      <el-button
+        :loading="loading"
         type="primary"
-        style="width:100%;margin-bottom:30px;"
-        @click.native.prevent="handleLogin">登录</el-button>
+        style="width: 100%; margin-bottom: 30px"
+        @click.native.prevent="handleLogin"
+        >登录</el-button
+      >
 
-      <div style="position:relative">
-        <div class="tips">
-          账号密码随便输入
-        </div>
+      <div style="position: relative">
+        <div class="tips">账号密码随便输入</div>
       </div>
     </el-form>
-
   </div>
 </template>
 
@@ -54,48 +57,48 @@
 import { mapActions } from 'vuex';
 export default {
   name: 'Login',
-  data () {
+  data() {
     const validatePassword = (rule, value, callback) => {
       if (value.length < 6) {
         callback(new Error('管理员密码长度应大于6'));
-      }
-      else {
+      } else {
         callback();
       }
     };
     return {
       loginForm: {
         username: 'test123',
-        password: 'test123'
+        password: 'test123',
       },
       loginRules: {
-        username: [{ required: true, message: '管理员账户不允许为空', trigger: 'blur' }],
+        username: [
+          { required: true, message: '管理员账户不允许为空', trigger: 'blur' },
+        ],
         password: [
           { required: true, message: '管理员密码不允许为空', trigger: 'blur' },
-          { validator: validatePassword, trigger: 'blur' }
-        ]
+          { validator: validatePassword, trigger: 'blur' },
+        ],
       },
       passwordType: 'password',
-      loading: false
+      loading: false,
     };
   },
-  created () {
+  created() {
     this.redirect = this.$route.query && this.$route.query.redirect;
   },
   methods: {
     ...mapActions(['vx_ac_LoginByUsername']),
-    async handleLogin () {
+    async handleLogin() {
       try {
         await this.$refs.loginForm.validate();
         this.loading = true;
         await this.vx_ac_LoginByUsername(this.loginForm);
 
         this.$router.push({ path: this.redirect || '/layout/dashboard' });
-      }
-      catch (error) { }
+      } catch (error) {}
       this.loading = false;
-    }
-  }
+    },
+  },
 };
 </script>
 

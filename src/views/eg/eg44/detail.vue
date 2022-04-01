@@ -1,11 +1,8 @@
 <template>
-  <div>
-    detail
-  </div>
+  <div>detail</div>
 </template>
 
 <script>
-
 export default {
   name: '',
 
@@ -15,21 +12,18 @@ export default {
 
   props: {},
 
-  data () {
-    return {
-
-    };
+  data() {
+    return {};
   },
 
   computed: {},
 
   watch: {},
 
-  created () { },
+  created() {},
 
-  methods: {}
+  methods: {},
 };
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

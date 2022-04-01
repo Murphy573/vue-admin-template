@@ -6,33 +6,33 @@ import Pagination from '@/components/pagination';
 const PAGEPARAMS = {
   page: 1,
   limit: 15,
-  total: 0
+  total: 0,
 };
 
 export default {
   components: {
-    Pagination
+    Pagination,
   },
-  data () {
+  data() {
     return {
-      pageParamsMixin: Object.assign({}, PAGEPARAMS)
+      pageParamsMixin: Object.assign({}, PAGEPARAMS),
     };
   },
   methods: {
-    setPageparamsInit () {
+    setPageparamsInit() {
       this.pageParamsMixin = Object.assign({}, PAGEPARAMS);
     },
-    setFirstPageMixin () {
+    setFirstPageMixin() {
       this.pageParamsMixin.page = 1;
     },
-    setTotalCountMixin (total) {
+    setTotalCountMixin(total) {
       this.pageParamsMixin.total = total;
     },
-    buildPageParamsMixin () {
+    buildPageParamsMixin() {
       return {
         page: this.pageParamsMixin.page,
-        limit: this.pageParamsMixin.limit
+        limit: this.pageParamsMixin.limit,
       };
-    }
-  }
+    },
+  },
 };

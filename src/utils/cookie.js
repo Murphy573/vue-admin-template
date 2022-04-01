@@ -3,7 +3,7 @@ import { appendStoragePrefix, removeStoragePrefix } from './storage-prefix';
 
 /* 具体传参请参考：https://www.npmjs.com/package/js-cookie */
 export default {
-  get (...args) {
+  get(...args) {
     if (args.length) {
       args[0] = appendStoragePrefix(args[0]);
       return Cookies.get.apply(Cookies, args);
@@ -14,13 +14,13 @@ export default {
 
     let final = {};
 
-    Object.keys(All).forEach(key => {
+    Object.keys(All).forEach((key) => {
       final[removeStoragePrefix(key)] = All[key];
     });
 
     return final;
   },
-  getJSON (...args) {
+  getJSON(...args) {
     if (args.length) {
       args[0] = appendStoragePrefix(args[0]);
       return Cookies.getJSON.apply(Cookies, args);
@@ -31,22 +31,22 @@ export default {
 
     let final = {};
 
-    Object.keys(All).forEach(key => {
+    Object.keys(All).forEach((key) => {
       final[removeStoragePrefix(key)] = All[key];
     });
 
     return final;
   },
-  set (...args) {
+  set(...args) {
     if (args.length) {
       args[0] = appendStoragePrefix(args[0]);
     }
     return Cookies.set.apply(Cookies, args);
   },
-  remove (...args) {
+  remove(...args) {
     if (args.length) {
       args[0] = appendStoragePrefix(args[0]);
     }
     return Cookies.remove.apply(Cookies, args);
-  }
+  },
 };

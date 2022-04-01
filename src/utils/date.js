@@ -3,10 +3,10 @@
  * @param {Number|Date|String} time 时间
  * @returns Date
  */
-export function toDate (time) {
+export function toDate(time) {
   if (!time) {
     return new Date();
-  };
+  }
   if (typeof time === 'string') {
     time = time.replace(/-/g, '/');
   }
@@ -24,7 +24,7 @@ export function toDate (time) {
  *    mm: 分钟
  *    ss: 秒
  */
-export function formatDate (time, fmt = 'YYYY-MM-DD') {
+export function formatDate(time, fmt = 'YYYY-MM-DD') {
   if (!time) return '';
 
   const _time = toDate(time);
@@ -36,7 +36,7 @@ export function formatDate (time, fmt = 'YYYY-MM-DD') {
     'm+': _time.getMinutes(), // 分
     's+': _time.getSeconds(), // 秒
     'q+': Math.floor((_time.getMonth() + 3) / 3), // 季度
-    S: _time.getMilliseconds() // 毫秒
+    S: _time.getMilliseconds(), // 毫秒
   };
   if (/(Y+)/.test(fmt)) {
     fmt = fmt.replace(
@@ -59,7 +59,7 @@ export function formatDate (time, fmt = 'YYYY-MM-DD') {
  * 获取当月有多少天
  * @param {String | Number | Date} time 日期
  */
-export function getCurrentMonthDays (time) {
+export function getCurrentMonthDays(time) {
   const _time = new Date(time);
   return new Date(_time.getFullYear(), _time.getMonth() + 1, 0).getDate();
 }
@@ -69,7 +69,7 @@ export function getCurrentMonthDays (time) {
  * @param {String | Number | Date} date1 开始日期
  * @param {String | Number | Date} date2 结束日期
  */
-export function getDiffDays (date1, date2) {
+export function getDiffDays(date1, date2) {
   if (!date1 || !date2) {
     return -1;
   }
@@ -84,7 +84,7 @@ export function getDiffDays (date1, date2) {
  * @param {String | Number | Date} time 日期
  * @param {String} prefix 前缀
  */
-export function getWeekDay (time, prefix = '星期') {
+export function getWeekDay(time, prefix = '星期') {
   if (!time) {
     return '';
   }
@@ -98,7 +98,7 @@ export function getWeekDay (time, prefix = '星期') {
  * @param {Date|Number|String} time2 时间2
  * @returns Boolean
  */
-export function isBefore (time1, time2) {
+export function isBefore(time1, time2) {
   if (!time1 || !time2) return false;
   time1 = toDate(time1).getTime();
   time2 = toDate(time2).getTime();

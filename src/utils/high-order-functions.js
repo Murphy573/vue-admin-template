@@ -6,14 +6,18 @@
  */
 export const compose = function (...funcs) {
   if (funcs.length === 0) {
-    return arg => arg;
+    return (arg) => arg;
   }
 
   if (funcs.length === 1) {
     return funcs[0];
   }
 
-  return funcs.reduce((prev, next) => (...args) => prev(next(...args)));
+  return funcs.reduce(
+    (prev, next) =>
+      (...args) =>
+        prev(next(...args))
+  );
 };
 
 /**
@@ -24,7 +28,7 @@ export const compose = function (...funcs) {
  */
 export const pipe = function (...funcs) {
   if (funcs.length === 0) {
-    return arg => arg;
+    return (arg) => arg;
   }
 
   if (funcs.length === 1) {

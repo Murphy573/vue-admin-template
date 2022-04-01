@@ -1,23 +1,19 @@
 <template>
-  <div class="sidebar-logo"
-    :class="{'collapse': collapse}">
-    <img src="@/assets/logo.png"
-      class="logo" />
+  <div class="sidebar-logo" :class="{ collapse: collapse }">
+    <img src="@/assets/logo.png" class="logo" />
     <transition name="fade">
-      <span v-show="!collapse"
-        class="title">管理端模版</span>
+      <span v-show="!collapse" class="title">管理端模版</span>
     </transition>
   </div>
 </template>
 
 <script>
-
 export default {
   name: 'SidebarLogo',
 
   props: {
-    collapse: Boolean
-  }
+    collapse: Boolean,
+  },
 };
 </script>
 

@@ -1,42 +1,42 @@
 import http from '@/utils/http';
 
-export function api_query_storageList (query) {
+export function api_query_storageList(query) {
   return http({
     url: '/storage/list',
     method: 'get',
-    params: query
+    params: query,
   });
 }
 
-export function api_create_storage (data) {
+export function api_create_storage(data) {
   return http({
     url: '/storage/create',
     method: 'post',
-    data
+    data,
   });
 }
 
-export function readStorage (data) {
+export function readStorage(data) {
   return http({
     url: '/storage/read',
     method: 'get',
-    data
+    data,
   });
 }
 
-export function api_update_storage (data) {
+export function api_update_storage(data) {
   return http({
     url: '/storage/update',
     method: 'post',
-    data
+    data,
   });
 }
 
-export function api_delete_storage (data) {
+export function api_delete_storage(data) {
   return http({
     url: '/storage/delete',
     method: 'post',
-    data
+    data,
   });
 }
 

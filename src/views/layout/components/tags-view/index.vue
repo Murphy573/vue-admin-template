@@ -1,27 +1,32 @@
 <template>
   <div class="tags-view-container">
-    <scroll-pane ref="scrollPane"
-      class="tags-view-wrapper">
-      <router-link v-for="(tag, index) in cmpt_visitedViews"
+    <scroll-pane ref="scrollPane" class="tags-view-wrapper">
+      <router-link
+        v-for="(tag, index) in cmpt_visitedViews"
         ref="tag"
         :key="tag.name"
         :class="tagClass(tag, index)"
         :to="tag"
         tag="span"
         class="tags-view-item"
-        @contextmenu.prevent.native="openMenu(tag,$event)">
+        @contextmenu.prevent.native="openMenu(tag, $event)">
         {{ generateTitle(tag.meta.title) }}
-        <span v-if="!isAffix(tag)"
+        <span
+          v-if="!isAffix(tag)"
           class="el-icon-close"
           @click.prevent.stop="closeSelectedTag(tag)" />
       </router-link>
     </scroll-pane>
-    <ul v-show="visible"
-      :style="{left:left+'px',top:top+'px'}"
+    <ul
+      v-show="visible"
+      :style="{ left: left + 'px', top: top + 'px' }"
       class="contextmenu">
-      <li @click="refreshSelectedTag(selectedTag)">{{ $t('tagsView.refresh') }}</li>
-      <li v-if="!isAffix(selectedTag)"
-        @click="closeSelectedTag(selectedTag)">{{ $t('tagsView.close') }}</li>
+      <li @click="refreshSelectedTag(selectedTag)">
+        {{ $t('tagsView.refresh') }}
+      </li>
+      <li v-if="!isAffix(selectedTag)" @click="closeSelectedTag(selectedTag)">
+        {{ $t('tagsView.close') }}
+      </li>
       <li @click="closeOthersTags">{{ $t('tagsView.closeOthers') }}</li>
       <li @click="closeAllTags(selectedTag)">{{ $t('tagsView.closeAll') }}</li>
     </ul>
@@ -36,40 +41,39 @@ import { setRedirectRouter } from '@/utils/redirect';
 
 export default {
   components: { ScrollPane },
-  data () {
+  data() {
     return {
       visible: false,
       top: 0,
       left: 0,
       selectedTag: {},
       affixTags: [],
-      activeTagIndex: -1
+      activeTagIndex: -1,
     };
   },
   computed: {
     ...mapGetters(['vx_gt_VisitedViews', 'vx_gt_Menus']),
-    cmpt_visitedViews () {
+    cmpt_visitedViews() {
       return this.vx_gt_VisitedViews;
     },
-    cmpt_tagClass () {
+    cmpt_tagClass() {
       return {};
-    }
+    },
   },
   watch: {
-    $route () {
+    $route() {
       this.addTags();
       this.moveToCurrentTag();
     },
-    visible (value) {
+    visible(value) {
       if (value) {
         document.body.addEventListener('click', this.closeMenu);
-      }
-      else {
+      } else {
         document.body.removeEventListener('click', this.closeMenu);
       }
-    }
+    },
   },
-  mounted () {
+  mounted() {
     this.initTags();
     this.addTags();
   },
@@ -81,36 +85,39 @@ export default {
       'vx_ac_DelView',
       'vx_ac_DelCachedView',
       'vx_ac_DelOthersViews',
-      'vx_ac_DelAllViews'
+      'vx_ac_DelAllViews',
     ]),
-    generateTitle (title) {
+    generateTitle(title) {
       return this.$t(`navigation.${title}`);
     },
-    tagClass (tag, index) {
-      this.activeTagIndex = this.cmpt_visitedViews.findIndex(tag => tag.name === this.$route.name);
+    tagClass(tag, index) {
+      this.activeTagIndex = this.cmpt_visitedViews.findIndex(
+        (tag) => tag.name === this.$route.name
+      );
       return {
         active: tag.name === this.$route.name,
-        breakline: index !== this.activeTagIndex && index !== this.activeTagIndex - 1
+        breakline:
+          index !== this.activeTagIndex && index !== this.activeTagIndex - 1,
       };
     },
-    isActive (route) {
+    isActive(route) {
       return route.name === this.$route.name;
     },
-    isAffix (tag) {
+    isAffix(tag) {
       return tag.meta && tag.meta.affix;
     },
-    buildTagData (route) {
+    buildTagData(route) {
       const { name, meta, query, params } = route;
       return {
         name,
         meta: { ...meta },
         query,
-        params
+        params,
       };
     },
-    filterAffixTags (menus) {
+    filterAffixTags(menus) {
       let tags = [];
-      menus.forEach(menu => {
+      menus.forEach((menu) => {
         if (menu.meta.affix && !menu.children) {
           tags.push(this.buildTagData(menu));
         }
@@ -123,7 +130,7 @@ export default {
       });
       return tags;
     },
-    initTags () {
+    initTags() {
       this.affixTags = this.filterAffixTags(this.vx_gt_Menus);
       for (const tag of this.affixTags) {
         // Must have tag name
@@ -132,7 +139,7 @@ export default {
         }
       }
     },
-    addTags () {
+    addTags() {
       const { name, meta } = this.$route;
       if (meta && meta.showTag === false) return;
       if (name) {
@@ -140,7 +147,7 @@ export default {
       }
       return false;
     },
-    moveToCurrentTag () {
+    moveToCurrentTag() {
       const tags = this.$refs.tag;
       this.$nextTick(() => {
         for (const tag of tags) {
@@ -156,42 +163,41 @@ export default {
         }
       });
     },
-    refreshSelectedTag (view) {
+    refreshSelectedTag(view) {
       this.vx_ac_DelCachedView(view);
       this.toRedirect(view);
     },
-    closeSelectedTag (view) {
+    closeSelectedTag(view) {
       this.vx_ac_DelView(view);
       if (this.isActive(view)) {
         this.toLastView(view);
       }
     },
-    closeOthersTags () {
+    closeOthersTags() {
       this.vx_ac_DelOthersViews(this.selectedTag);
       this.$router.push(this.selectedTag);
       this.moveToCurrentTag();
     },
-    closeAllTags (view) {
+    closeAllTags(view) {
       this.vx_ac_DelAllViews();
-      if (this.affixTags.some(tag => tag.name === view.name)) {
+      if (this.affixTags.some((tag) => tag.name === view.name)) {
         return;
       }
       this.toLastView(view);
     },
-    toLastView (view) {
+    toLastView(view) {
       const latestView = this.cmpt_visitedViews.slice(-1)[0];
       if (latestView) {
         this.$router.push(latestView);
-      }
-      else {
+      } else {
         this.toRedirect({ name: 'dashboard' });
       }
     },
-    toRedirect (view) {
+    toRedirect(view) {
       setRedirectRouter(view);
       this.$router.replace({ name: 'redirect' });
     },
-    openMenu (tag, e) {
+    openMenu(tag, e) {
       const menuMinWidth = 105;
       const offsetLeft = this.$el.getBoundingClientRect().left; // container margin left
       const offsetWidth = this.$el.offsetWidth; // container width
@@ -200,8 +206,7 @@ export default {
 
       if (left > maxLeft) {
         this.left = maxLeft;
-      }
-      else {
+      } else {
         this.left = left;
       }
 
@@ -209,10 +214,10 @@ export default {
       this.visible = true;
       this.selectedTag = tag;
     },
-    closeMenu () {
+    closeMenu() {
       this.visible = false;
-    }
-  }
+    },
+  },
 };
 </script>
 

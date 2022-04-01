@@ -1,7 +1,8 @@
 <template>
   <div class="layout">
     <SideBar />
-    <div id="global-main-container"
+    <div
+      id="global-main-container"
       class="main-container"
       :class="cmpt_mainClass">
       <div class="main-top">
@@ -9,8 +10,7 @@
         <TagsView v-if="vx_gt_showTagsView" />
       </div>
       <div class="main-bottom">
-        <transition name="fade-transform"
-          mode="out-in">
+        <transition name="fade-transform" mode="out-in">
           <keep-alive :include="vx_gt_CachedViews">
             <router-view />
           </keep-alive>
@@ -32,18 +32,23 @@ export default {
   components: { SideBar, Navbar, TagsView },
 
   computed: {
-    ...mapGetters(['vx_gt_CachedViews', 'vx_gt_showTagsView', 'vx_gt_fixedHeader', 'vx_gt_Sidebar']),
-    cmpt_isSidebarCollapse () {
+    ...mapGetters([
+      'vx_gt_CachedViews',
+      'vx_gt_showTagsView',
+      'vx_gt_fixedHeader',
+      'vx_gt_Sidebar',
+    ]),
+    cmpt_isSidebarCollapse() {
       return !this.vx_gt_Sidebar.opened;
     },
-    cmpt_mainClass () {
+    cmpt_mainClass() {
       return {
         'fixed-header': this.vx_gt_fixedHeader,
         collapse: this.cmpt_isSidebarCollapse,
-        showTagsView: this.vx_gt_showTagsView
+        showTagsView: this.vx_gt_showTagsView,
       };
-    }
-  }
+    },
+  },
 };
 </script>
 

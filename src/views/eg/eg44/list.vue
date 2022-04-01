@@ -1,11 +1,10 @@
 <template>
   <div>
-    <el-button @click="$router.push({name: 'detail'})">去详情</el-button>
+    <el-button @click="$router.push({ name: 'detail' })">去详情</el-button>
   </div>
 </template>
 
 <script>
-
 export default {
   name: '',
 
@@ -15,21 +14,18 @@ export default {
 
   props: {},
 
-  data () {
-    return {
-
-    };
+  data() {
+    return {};
   },
 
   computed: {},
 
   watch: {},
 
-  created () { },
+  created() {},
 
-  methods: {}
+  methods: {},
 };
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

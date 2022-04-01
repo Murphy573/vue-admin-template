@@ -6,6 +6,6 @@ export default {
     menuMapper: 'dashboard',
     breadcrumb: 'dashboard',
     title: 'dashboard',
-    affix: true
-  }
+    affix: true,
+  },
 };

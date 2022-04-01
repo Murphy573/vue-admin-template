@@ -1,21 +1,22 @@
 <template>
-  <div class="sidebar-wrapper"
-    :class="[cmpt_wrapperClass, cmpt_hideSidebar]">
-    <div v-if="vx_gt_showSidebarLogo"
+  <div class="sidebar-wrapper" :class="[cmpt_wrapperClass, cmpt_hideSidebar]">
+    <div
+      v-if="vx_gt_showSidebarLogo"
       class="siderbar-logo"
       :class="cmpt_hideSidebar">
       <SidebarLogo :collapse="!vx_gt_Sidebar.opened" />
     </div>
-    <div class="sidebar-menu"
-      :class="cmpt_hideSidebar">
+    <div class="sidebar-menu" :class="cmpt_hideSidebar">
       <el-scrollbar wrap-class="scrollbar-wrapper">
-        <el-menu mode="vertical"
+        <el-menu
+          mode="vertical"
           :default-active="vx_gt_ActiveMenu"
           :collapse="cmlt_isCollapse"
           :collapse-transition="false"
           :unique-opened="false"
           @select="setCurrentMenu">
-          <sidebar-item v-for="item of vx_gt_Menus"
+          <sidebar-item
+            v-for="item of vx_gt_Menus"
             :item="item"
             :key="item.name"></sidebar-item>
         </el-menu>
@@ -34,28 +35,33 @@ export default {
   name: 'Sidebar',
   components: { SidebarItem, SidebarLogo },
   computed: {
-    ...mapGetters(['vx_gt_ActiveMenu', 'vx_gt_Menus', 'vx_gt_Sidebar', 'vx_gt_showSidebarLogo']),
-    cmlt_isCollapse () {
+    ...mapGetters([
+      'vx_gt_ActiveMenu',
+      'vx_gt_Menus',
+      'vx_gt_Sidebar',
+      'vx_gt_showSidebarLogo',
+    ]),
+    cmlt_isCollapse() {
       return !this.vx_gt_Sidebar.opened;
     },
-    cmpt_wrapperClass () {
+    cmpt_wrapperClass() {
       return {
-        withoutAnimation: this.vx_gt_Sidebar.withoutAnimation
+        withoutAnimation: this.vx_gt_Sidebar.withoutAnimation,
       };
     },
-    cmpt_hideSidebar () {
+    cmpt_hideSidebar() {
       return { hideSidebar: !this.vx_gt_Sidebar.opened };
     },
-    cmpt_cssVars () {
+    cmpt_cssVars() {
       return CssVars;
-    }
+    },
   },
   methods: {
     ...mapActions(['vx_ac_SetActiveMenu']),
-    setCurrentMenu (name) {
+    setCurrentMenu(name) {
       this.$router.push({ name });
-    }
-  }
+    },
+  },
 };
 </script>
 

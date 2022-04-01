@@ -15,9 +15,8 @@ const checkPermission = function (perms) {
 
     if (permissions.indexOf('*') >= 0) {
       hasPermission = true;
-    }
-    else {
-      hasPermission = permissions.some(perm => {
+    } else {
+      hasPermission = permissions.some((perm) => {
         return perms.includes(perm);
       });
     }
@@ -26,8 +25,7 @@ const checkPermission = function (perms) {
       return false;
     }
     return true;
-  }
-  else {
+  } else {
     return false;
   }
 };

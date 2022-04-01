@@ -12,8 +12,8 @@ const store = new Vuex.Store({
     app,
     menu,
     tagsView,
-    user
-  }
+    user,
+  },
 });
 
 export default store;

@@ -11,7 +11,7 @@ export default function ({
   text = 'clipboard',
   success = noop,
   error = noop,
-  event = null
+  event = null,
 } = {}) {
   // 检测event是否是事件对象
   if (!(event instanceof Event)) {
@@ -19,16 +19,16 @@ export default function ({
   }
   const clipboard = new Clipboard(event.target, {
     text: () => text,
-    action: () => (action === 'cut' ? 'cut' : 'copy')
+    action: () => (action === 'cut' ? 'cut' : 'copy'),
   });
 
-  clipboard.on('success', e => {
+  clipboard.on('success', (e) => {
     isFunction(success) && success(e);
     clipboard.off('error');
     clipboard.off('success');
     clipboard.destroy();
   });
-  clipboard.on('error', e => {
+  clipboard.on('error', (e) => {
     isFunction(error) && error(e);
     clipboard.off('error');
     clipboard.off('success');

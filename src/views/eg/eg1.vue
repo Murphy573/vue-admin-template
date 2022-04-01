@@ -1,11 +1,8 @@
 <template>
-  <div class="app-container">
-    实例1
-  </div>
+  <div class="app-container">实例1</div>
 </template>
 
 <script>
-
 export default {
   name: 'Eg1',
 
@@ -15,21 +12,18 @@ export default {
 
   props: {},
 
-  data () {
-    return {
-
-    };
+  data() {
+    return {};
   },
 
   computed: {},
 
   watch: {},
 
-  created () { },
+  created() {},
 
-  methods: {}
+  methods: {},
 };
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

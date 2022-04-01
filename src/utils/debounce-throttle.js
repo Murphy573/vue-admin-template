@@ -5,7 +5,7 @@ const nowTimestamp = () => new Date().valueOf();
  * @param {Number} wait 等待毫秒数
  * @param {Boolean} immediate 是否立即触发一次
  */
-export function debounce (func, wait, immediate = false) {
+export function debounce(func, wait, immediate = false) {
   let timeout, args, context, timestamp, result;
 
   const later = function () {
@@ -14,8 +14,7 @@ export function debounce (func, wait, immediate = false) {
 
     if (last < wait && last >= 0) {
       timeout = setTimeout(later, wait - last);
-    }
-    else {
+    } else {
       timeout = null;
       if (!immediate) {
         result = func.apply(context, args);
@@ -47,7 +46,7 @@ export function debounce (func, wait, immediate = false) {
  * @param {Number} wait 毫秒数
  * @param {{leading:Boolean, trailing:Boolean}}} options 触发选项
  */
-export function throttle (func, wait, options) {
+export function throttle(func, wait, options) {
   /* options的默认值
    *  表示首次调用返回值方法时，会马上调用func；否则仅会记录当前时刻，当第二次调用的时间间隔超过wait时，才调用func。
    *  options.leading = true;
@@ -84,8 +83,7 @@ export function throttle (func, wait, options) {
       previous = now;
       result = func.apply(context, args);
       if (!timeout) context = args = null;
-    }
-    else if (!timeout && options.trailing !== false) {
+    } else if (!timeout && options.trailing !== false) {
       // options.trailing=true时，延时执行func函数
       timeout = setTimeout(later, remaining);
     }

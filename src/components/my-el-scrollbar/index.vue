@@ -1,6 +1,5 @@
 <template>
-  <div class="my-scrollbar"
-    :class="cmpt_class">
+  <div class="my-scrollbar" :class="cmpt_class">
     <el-scrollbar wrap-class="scrollbar-wrapper">
       <slot></slot>
     </el-scrollbar>
@@ -8,35 +7,32 @@
 </template>
 
 <script>
-
 export default {
   name: 'MyElScrollbar',
 
   props: {
     horizontal: {
       type: Boolean,
-      default: false
+      default: false,
     },
     vertical: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
 
   computed: {
-    cmpt_class () {
+    cmpt_class() {
       return {
         horizontal: this.horizontal,
-        vertical: this.vertical
+        vertical: this.vertical,
       };
-    }
+    },
   },
 
-  data () {
-    return {
-
-    };
-  }
+  data() {
+    return {};
+  },
 };
 </script>
 

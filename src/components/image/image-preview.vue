@@ -1,19 +1,18 @@
 <template>
-  <el-image v-bind="$attrs"
+  <el-image
+    v-bind="$attrs"
     v-on="$listeners"
     :src="cmpt_src"
     :style="cmpt_style"
     :preview-src-list="cmpt_previewSrcList"
     :fit="fit">
-    <div slot="error"
-      class="image-error image-slot">
+    <div slot="error" class="image-error image-slot">
       <i class="el-icon-picture-outline"></i>
       <div class="image-error-tip">
-        {{cmpt_src ? '加载失败': '暂无图片'}}
+        {{ cmpt_src ? '加载失败' : '暂无图片' }}
       </div>
     </div>
-    <div slot="placeholder"
-      class="image-loading image-slot">
+    <div slot="placeholder" class="image-loading image-slot">
       加载中<span class="dot">...</span>
     </div>
   </el-image>
@@ -30,43 +29,43 @@ export default {
     src: String,
     fit: {
       type: String,
-      default: 'fill'
+      default: 'fill',
     },
     previewSrcList: {
       type: Array,
-      default () {
+      default() {
         return null;
-      }
+      },
     },
     width: {
       type: [String, Number],
-      default: 60
+      default: 60,
     },
     height: {
       type: [String, Number],
-      default: 60
-    }
+      default: 60,
+    },
   },
 
   computed: {
-    cmpt_src () {
+    cmpt_src() {
       return convertImgAddress(this.src);
     },
-    cmpt_style () {
+    cmpt_style() {
       return {
         width: addUnit(this.width),
-        height: addUnit(this.height)
+        height: addUnit(this.height),
       };
     },
-    cmpt_previewSrcList () {
+    cmpt_previewSrcList() {
       const list = Array.isArray(this.previewSrcList)
-        ? this.previewSrcList.map(v => {
-          return convertImgAddress(v);
-        })
+        ? this.previewSrcList.map((v) => {
+            return convertImgAddress(v);
+          })
         : [];
       return list;
-    }
-  }
+    },
+  },
 };
 </script>
 

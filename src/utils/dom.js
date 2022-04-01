@@ -5,7 +5,7 @@ import { isDef, isNumber } from './common';
  * @param {Element} el
  * @param {String} className
  */
-export function hasClass (el, className) {
+export function hasClass(el, className) {
   const reg = new RegExp('(^|\\s)' + className + '(\\s|$)');
   return reg.test(el.className);
 }
@@ -15,7 +15,7 @@ export function hasClass (el, className) {
  * @param {Element} el
  * @param {String} className
  */
-export function addClass (el, className) {
+export function addClass(el, className) {
   if (hasClass(el, className)) {
     return;
   }
@@ -30,7 +30,7 @@ export function addClass (el, className) {
  * @param {Element} el
  * @param {String} className
  */
-export function removeClass (el, className) {
+export function removeClass(el, className) {
   if (!hasClass(el, className)) {
     return;
   }
@@ -45,7 +45,7 @@ export function removeClass (el, className) {
  * @param {String} name
  * @param {Any} val
  */
-export function handleData (el, name, val) {
+export function handleData(el, name, val) {
   const prefix = 'data-';
   if (val) {
     return el.setAttribute(prefix + name, val);
@@ -53,22 +53,21 @@ export function handleData (el, name, val) {
   return el.getAttribute(prefix + name);
 }
 
-export function getRect (el) {
+export function getRect(el) {
   if (el instanceof window.SVGElement) {
     const rect = el.getBoundingClientRect();
     return {
       top: rect.top,
       left: rect.left,
       width: rect.width,
-      height: rect.height
+      height: rect.height,
     };
-  }
-  else {
+  } else {
     return {
       top: el.offsetTop,
       left: el.offsetLeft,
       width: el.offsetWidth,
-      height: el.offsetHeight
+      height: el.offsetHeight,
     };
   }
 }
@@ -78,14 +77,13 @@ let supportsPassive = false;
 try {
   const opts = {};
   Object.defineProperty(opts, 'passive', {
-    get () {
-      /* istanbul ignore next */
+    // eslint-disable-next-line getter-return
+    get() {
       supportsPassive = true;
-    }
+    },
   });
   window.addEventListener('test-passive', null, opts);
-}
-catch (e) {}
+} catch (e) {}
 /**
  * 监听事件
  * @param {HTMLElement} target dom
@@ -93,7 +91,7 @@ catch (e) {}
  * @param {Function} handler 处理函数
  * @param {Boolean} passive 是否支持
  */
-export function on (target, event, handler, passive = false) {
+export function on(target, event, handler, passive = false) {
   target.addEventListener(
     event,
     handler,
@@ -106,7 +104,7 @@ export function on (target, event, handler, passive = false) {
  * @param {String} event 事件名称
  * @param {Function} handler 处理函数
  */
-export function off (target, event, handler) {
+export function off(target, event, handler) {
   target.removeEventListener(event, handler);
 }
 
@@ -115,7 +113,7 @@ export function off (target, event, handler) {
  * @param {String|Number} value size
  * @param {String} suffix 单位 默认px
  */
-export function addUnit (value, suffix = 'px') {
+export function addUnit(value, suffix = 'px') {
   if (!isDef(value)) {
     return undefined;
   }

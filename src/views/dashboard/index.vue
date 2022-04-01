@@ -1,19 +1,17 @@
 <template>
-  <div class="dashboard-editor-container">
-    dashboard
-  </div>
+  <div class="dashboard-editor-container">dashboard</div>
 </template>
 
 <script>
 export default {
-  data () {
+  data() {
     return {
       userTotal: 0,
       goodsTotal: 0,
       productTotal: 0,
-      orderTotal: 0
+      orderTotal: 0,
     };
-  }
+  },
 };
 </script>
 

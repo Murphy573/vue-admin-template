@@ -27,15 +27,15 @@ export default [
         name: 'redirect',
         component: () => import('@/views/redirect/index'),
         meta: {
-          showTag: false
-        }
+          showTag: false,
+        },
       },
       Dashboard,
-      eg
-    ]
+      eg,
+    ],
   },
   {
     path: '*',
-    redirect: { name: 'login', replace: true }
-  }
+    redirect: { name: 'login', replace: true },
+  },
 ];

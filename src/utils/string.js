@@ -2,7 +2,7 @@
  * 字符串排序
  * @param {String} str 字符串
  */
-export function sortCharactersInString (str) {
+export function sortCharactersInString(str) {
   return str
     .split('')
     .sort((a, b) => a.localeCompare(b))
@@ -10,25 +10,22 @@ export function sortCharactersInString (str) {
 }
 
 // 反转一个字符串
-export function reverseString (str) {
-  return str
-    .split('')
-    .reverse()
-    .join('');
+export function reverseString(str) {
+  return str.split('').reverse().join('');
 }
 
 // 将回车(\n)替换为<br/>
-export function replaceEnter2Br (str) {
+export function replaceEnter2Br(str) {
   return str.replace(/\n/g, '<br/>');
 }
 // 将<br/>替换为回车(\n)
-export function replaceBr2Enter (str) {
+export function replaceBr2Enter(str) {
   return str.replace(/<br\/>/g, '\n');
 }
 
 // 大写每个单词的首字母: 'hello world!' -> 'Hello World!'
-export function capitalizeEveryWord (str) {
-  return str.replace(/\b[a-z]/g, char => char.toUpperCase());
+export function capitalizeEveryWord(str) {
+  return str.replace(/\b[a-z]/g, (char) => char.toUpperCase());
 }
 
 /**
@@ -36,18 +33,18 @@ export function capitalizeEveryWord (str) {
  * @param {String|Number} suffix 后缀
  * @returns {String} UUID
  */
-export function generateUUID (suffix) {
-  const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (
-    c
-  ) {
-    const r = (Math.random() * 16) | 0,
-      v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+export function generateUUID(suffix) {
+  const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
+    /[xy]/g,
+    function (c) {
+      const r = (Math.random() * 16) | 0,
+        v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    }
+  );
   if (typeof suffix === 'string' || typeof suffix === 'number') {
     return uuid + ':' + suffix;
-  }
-  else {
+  } else {
     return uuid + '';
   }
 }
@@ -60,10 +57,9 @@ export function generateUUID (suffix) {
  * @template 8 character ID (base=10) generateUniqueIdByCustom(8, 10) // "47473046"
  * @template 8 character ID (base=16) generateUniqueIdByCustom(8, 16) // "098F4D35"
  */
-export function generateUniqueIdByCustom (len, radix) {
-  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split(
-    ''
-  );
+export function generateUniqueIdByCustom(len, radix) {
+  const chars =
+    '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split('');
   const uuid = [];
   let i;
   radix = radix || chars.length;
@@ -71,8 +67,7 @@ export function generateUniqueIdByCustom (len, radix) {
   if (len) {
     // Compact form
     for (i = 0; i < len; i++) uuid[i] = chars[0 | (Math.random() * radix)];
-  }
-  else {
+  } else {
     // rfc4122, version 4 form
     let r;
 
@@ -97,6 +92,6 @@ export function generateUniqueIdByCustom (len, radix) {
  * 限制输入框小数点后两位
  * @param {String} value 输入框的value
  */
-export function inputDecimal (value) {
+export function inputDecimal(value) {
   return value.match(/^\d*(\.?\d{0,2})/g)[0];
 }

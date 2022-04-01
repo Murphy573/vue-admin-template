@@ -1,19 +1,13 @@
 <template>
   <transition name="fade">
-    <div v-show="visible"
-      class="scroll-top-bottom"
-      :style="customStyle">
-      <el-tooltip placement="left"
-        content="返回顶部">
-        <div class="top block"
-          @click="handle2Top">
+    <div v-show="visible" class="scroll-top-bottom" :style="customStyle">
+      <el-tooltip placement="left" content="返回顶部">
+        <div class="top block" @click="handle2Top">
           <i class="el-icon-top"></i>
         </div>
       </el-tooltip>
-      <el-tooltip placement="left"
-        content="去底部">
-        <div class="bottom block"
-          @click="handle2Bottom">
+      <el-tooltip placement="left" content="去底部">
+        <div class="bottom block" @click="handle2Bottom">
           <i class="el-icon-bottom"></i>
         </div>
       </el-tooltip>
@@ -30,15 +24,15 @@ export default {
   props: {
     visibilityHeight: {
       type: Number,
-      default: 200
+      default: 200,
     },
     topPosition: {
       type: Number,
-      default: 0
+      default: 0,
     },
     bottomPositon: {
       type: Number,
-      default: -1
+      default: -1,
     },
     showBottom: Boolean,
     customStyle: {
@@ -50,36 +44,36 @@ export default {
           width: '40px',
           height: '80px',
           'border-radius': '4px',
-          background: '#e7eaf1'
+          background: '#e7eaf1',
         };
-      }
+      },
     },
     transitionName: {
       type: String,
-      default: 'fade'
+      default: 'fade',
     },
     scrollTargetSelector: {
       type: String,
-      default: '#global-main-container'
-    }
+      default: '#global-main-container',
+    },
   },
 
-  data () {
+  data() {
     return {
       visible: false,
       interval: null,
       isMoving: false,
-      timer: null
+      timer: null,
     };
   },
 
   computed: {
-    cmpt_scrollTarget () {
+    cmpt_scrollTarget() {
       return document.querySelector(this.scrollTargetSelector);
-    }
+    },
   },
 
-  mounted () {
+  mounted() {
     this.cmpt_scrollTarget.addEventListener('scroll', this.handleScroll);
     this.$once('hook:beforeDestroy', () => {
       this.cmpt_scrollTarget.removeEventListener('scroll', this.handleScroll);
@@ -88,10 +82,10 @@ export default {
   },
 
   methods: {
-    handleScroll () {
+    handleScroll() {
       this.visible = this.cmpt_scrollTarget.scrollTop > this.visibilityHeight;
     },
-    handle2Top () {
+    handle2Top() {
       if (this.isMoving) return;
       const y = this.topPosition;
       this.isMoving = true;
@@ -99,14 +93,15 @@ export default {
       let i = 0;
 
       const step = () => {
-        const next = Math.floor(this.easeInOutQuad(10 * i, start, this.topPosition - start, 500));
+        const next = Math.floor(
+          this.easeInOutQuad(10 * i, start, this.topPosition - start, 500)
+        );
 
         if (next <= y) {
           this.cmpt_scrollTarget.scrollTo(0, y);
           this.isMoving = false;
           cancelRaf(this.timer);
-        }
-        else {
+        } else {
           this.cmpt_scrollTarget.scrollTo(0, next);
           this.timer = raf(step);
         }
@@ -116,25 +111,28 @@ export default {
       cancelRaf(this.timer);
       step();
     },
-    handle2Bottom () {
+    handle2Bottom() {
       if (this.isMoving) return;
       let y = this.bottomPositon;
       if (this.bottomPositon < 0) {
-        y = this.cmpt_scrollTarget.scrollHeight - this.cmpt_scrollTarget.clientHeight;
+        y =
+          this.cmpt_scrollTarget.scrollHeight -
+          this.cmpt_scrollTarget.clientHeight;
       }
       this.isMoving = true;
       const start = this.cmpt_scrollTarget.scrollTop;
       let i = 0;
 
       const step = () => {
-        const next = Math.floor(this.easeInOutQuad(10 * i, start, y - start, 500));
+        const next = Math.floor(
+          this.easeInOutQuad(10 * i, start, y - start, 500)
+        );
 
         if (next >= y) {
           this.cmpt_scrollTarget.scrollTo(0, y);
           this.isMoving = false;
           cancelRaf(this.timer);
-        }
-        else {
+        } else {
           this.cmpt_scrollTarget.scrollTo(0, next);
           this.timer = raf(step);
         }
@@ -145,11 +143,11 @@ export default {
       step();
     },
     // 参数说明:t初始时间,b起始位置,c移动的距离,d缓动执行多长时间
-    easeInOutQuad (t, b, c, d) {
-      if ((t /= d / 2) < 1) return c / 2 * t * t + b;
-      return -c / 2 * (--t * (t - 2) - 1) + b;
-    }
-  }
+    easeInOutQuad(t, b, c, d) {
+      if ((t /= d / 2) < 1) return (c / 2) * t * t + b;
+      return (-c / 2) * (--t * (t - 2) - 1) + b;
+    },
+  },
 };
 </script>
 

@@ -2,13 +2,11 @@
   <div class="app-container">
     实例2：CODE1和CODE2权限码
     <p>下面的value在同级路由下是缓存的</p>
-    <el-input v-model="value"
-      v-number></el-input>
+    <el-input v-model="value" v-number></el-input>
   </div>
 </template>
 
 <script>
-
 export default {
   name: 'Eg2',
 
@@ -18,9 +16,9 @@ export default {
 
   props: {},
 
-  data () {
+  data() {
     return {
-      value: 1
+      value: 1,
     };
   },
 
@@ -28,11 +26,10 @@ export default {
 
   watch: {},
 
-  created () { },
+  created() {},
 
-  methods: {}
+  methods: {},
 };
 </script>
 
-<style lang="scss" scoped>
-</style>
+<style lang="scss" scoped></style>

@@ -1,6 +1,6 @@
 // vue.config.js
 const path = require('path');
-const resolve = dir => path.join(__dirname, dir);
+const resolve = (dir) => path.join(__dirname, dir);
 // 环境变量
 const ENV = process.env;
 const IS_PRODUCTION = ENV.NODE_ENV === 'production';
@@ -22,7 +22,7 @@ module.exports = {
   productionSourceMap: false,
   // 是否为 Babel 或 TypeScript 使用 thread-loader
   parallel: require('os').cpus().length > 1,
-  chainWebpack: config => {
+  chainWebpack: (config) => {
     config.resolve.alias.set('@', resolve('src'));
 
     // 移除 prefetch 插件
@@ -34,17 +34,14 @@ module.exports = {
       .rule('images')
       .use('url-loader')
       .loader('url-loader')
-      .tap(options => {
+      .tap((options) => {
         // 修改base64限定值
         options.limit = 10000;
         return options;
       });
 
     // set svg-sprite-loader
-    config.module
-      .rule('svg')
-      .exclude.add(resolve('src/icons'))
-      .end();
+    config.module.rule('svg').exclude.add(resolve('src/icons')).end();
     config.module
       .rule('icons')
       .test(/\.svg$/)
@@ -53,7 +50,7 @@ module.exports = {
       .use('svg-sprite-loader')
       .loader('svg-sprite-loader')
       .options({
-        symbolId: 'icon-[name]'
+        symbolId: 'icon-[name]',
       })
       .end();
 
@@ -68,9 +65,9 @@ module.exports = {
       // 给 sass-loader 传递选项
       scss: {
         // 这里只能引入全局变量css文件，其他的通用样式不要引入，不然会产生样式混乱
-        prependData: '@import "@/styles/vars.scss";'
-      }
-    }
+        prependData: '@import "@/styles/vars.scss";',
+      },
+    },
   },
   // 开发环境host、port等配置
   devServer: {
@@ -86,12 +83,12 @@ module.exports = {
       '^/admin/': {
         // beta
         target: 'http://47.96.39.24:23456/',
-        changeOrigin: true
-      }
-    }
+        changeOrigin: true,
+      },
+    },
   },
   //  webpack插件配置
   configureWebpack: () => {
     return IS_PRODUCTION ? webpackConfigProd : webpackConfigDev;
-  }
+  },
 };

@@ -1,22 +1,20 @@
 <template>
   <div class="muti-upload-container">
-    <div v-for="(item, index) of imgList"
-      :key="item"
-      class="item">
-      <SingleImage v-model="imgList[index]"
+    <div v-for="(item, index) of imgList" :key="item" class="item">
+      <SingleImage
+        v-model="imgList[index]"
         :mutiple-index="index"
         v-bind="$attrs"
         nest-in-mutiple
         show-actions
         @on-mutiple-remove="handleRemove">
-        <template #action="{url, index}">
-          <slot name="action"
-            :url="url"
-            :index="index"></slot>
+        <template #action="{ url, index }">
+          <slot name="action" :url="url" :index="index"></slot>
         </template>
       </SingleImage>
     </div>
-    <SingleImage v-bind="$attrs"
+    <SingleImage
+      v-bind="$attrs"
       nest-in-mutiple
       additional
       @upload-success="handleAdd"
@@ -35,78 +33,77 @@ export default {
   props: {
     value: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     disabled: Boolean,
     width: {
       type: Number,
-      default: 145
+      default: 145,
     },
     height: {
       type: Number,
-      default: 145
+      default: 145,
     },
     accept: {
       type: String,
-      default: '.jpg,.jpeg,.png,.gif'
+      default: '.jpg,.jpeg,.png,.gif',
     },
     // 图片限定大小：单位M
     limit: {
       type: Number,
-      default: 20
+      default: 20,
     },
     // 最大数量
     maxCount: {
       type: Number,
-      default: 99
+      default: 99,
     },
     openCompress: {
       type: Boolean,
-      default: false
+      default: false,
     },
     compressRatio: {
       type: Number,
       default: 0.3,
-      validate (v) {
+      validate(v) {
         return v > 0 && v < 1;
-      }
-    }
+      },
+    },
   },
 
-  data () {
-    return {
-    };
+  data() {
+    return {};
   },
 
   computed: {
     imgList: {
-      set (v) {
+      set(v) {
         this.$emit('input', v);
       },
-      get () {
+      get() {
         return this.value;
-      }
-    }
+      },
+    },
   },
 
   methods: {
-    uploadExceed () {
+    uploadExceed() {
       this.$message({
         type: 'error',
-        message: `上传文件个数超出限制!最多上传${this.maxCount}张图片!`
+        message: `上传文件个数超出限制!最多上传${this.maxCount}张图片!`,
       });
     },
-    handleRemove (index) {
+    handleRemove(index) {
       this.imgList.splice(index, 1);
     },
-    handleAdd (url) {
+    handleAdd(url) {
       if (this.imgList.length >= this.maxCount) {
         this.uploadExceed();
         return;
       }
       this.imgList.push(url);
-    }
-  }
+    },
+  },
 };
 </script>
 

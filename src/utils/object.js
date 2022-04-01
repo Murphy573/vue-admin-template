@@ -4,7 +4,7 @@ import _cloneDeep from 'lodash.clonedeep';
  * 深拷贝
  * @param {Object} target 目标拷贝对象
  */
-export function deepClone (target) {
+export function deepClone(target) {
   return _cloneDeep(target);
 }
 
@@ -14,7 +14,7 @@ export function deepClone (target) {
  * @param {String} path 路径，exmp: a.b.c
  * @param {Boolean} strict 严格模式
  */
-export function getPropByPath (obj, path, strict) {
+export function getPropByPath(obj, path, strict) {
   let tempObj = obj;
   path = path.replace(/\[(\w+)\]/g, '.$1');
   path = path.replace(/^\./, '');
@@ -26,8 +26,7 @@ export function getPropByPath (obj, path, strict) {
     const key = keyArr[i];
     if (key in tempObj) {
       tempObj = tempObj[key];
-    }
-    else {
+    } else {
       if (strict) {
         throw new Error('please transfer a valid prop path to form item!');
       }
@@ -37,7 +36,7 @@ export function getPropByPath (obj, path, strict) {
   return {
     o: tempObj,
     k: keyArr[i],
-    v: tempObj ? tempObj[keyArr[i]] : null
+    v: tempObj ? tempObj[keyArr[i]] : null,
   };
 }
 
@@ -45,7 +44,7 @@ export function getPropByPath (obj, path, strict) {
  * 判断传入的参数是否都相等
  * @param  {...any} args 参数
  */
-export function deepCompare (...args) {
+export function deepCompare(...args) {
   /* eslint-disable */
   let i, l, leftChain, rightChain;
 

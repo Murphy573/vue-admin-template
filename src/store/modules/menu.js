@@ -12,8 +12,8 @@ const INIT_ACTIVE_MENU = '';
 /**
  * 递归过滤符合条件的路由
  */
-function filterMenus (menus) {
-  return menus.filter(menu => {
+function filterMenus(menus) {
+  return menus.filter((menu) => {
     if (CheckPermission(menu.meta.permissions)) {
       // 如果路由配置表里是嵌套路由
       if (menu.children) {
@@ -23,8 +23,7 @@ function filterMenus (menus) {
           return true;
         }
         return false;
-      }
-      else {
+      } else {
         return true;
       }
     }
@@ -40,54 +39,53 @@ export default {
     // 侧边栏展开收起状态
     sidebar: {
       opened: !+Cookie.get('sidebarStatus'),
-      withoutAnimation: false
-    }
+      withoutAnimation: false,
+    },
   },
   mutations: {
-    SET_MENUS (state, menus = []) {
+    SET_MENUS(state, menus = []) {
       state.menus = menus;
     },
-    SET_ACTIVE_MENU (state, menu) {
+    SET_ACTIVE_MENU(state, menu) {
       state.activeMenu = menu;
     },
-    TOGGLE_SIDEBAR: state => {
+    TOGGLE_SIDEBAR: (state) => {
       if (state.sidebar.opened) {
         Cookie.set('sidebarStatus', 1);
-      }
-      else {
+      } else {
         Cookie.set('sidebarStatus', 0);
       }
       state.sidebar.opened = !state.sidebar.opened;
       state.sidebar.withoutAnimation = false;
-    }
+    },
   },
   getters: {
-    vx_gt_Menus (state) {
+    vx_gt_Menus(state) {
       return state.menus;
     },
-    vx_gt_ActiveMenu (state) {
+    vx_gt_ActiveMenu(state) {
       return state.activeMenu;
     },
-    vx_gt_Sidebar (state) {
+    vx_gt_Sidebar(state) {
       return state.sidebar;
-    }
+    },
   },
   actions: {
-    vx_ac_GenerateMenus ({ commit }) {
+    vx_ac_GenerateMenus({ commit }) {
       const _MenuConfig = deepClone(MenuConfig);
       const _menus = filterMenus(_MenuConfig);
       commit('SET_MENUS', _menus);
     },
-    vx_ac_SetActiveMenu ({ commit }, menu = INIT_ACTIVE_MENU) {
+    vx_ac_SetActiveMenu({ commit }, menu = INIT_ACTIVE_MENU) {
       commit('SET_ACTIVE_MENU', menu);
     },
     // 重置所有state
-    vx_ac_ResetSidebarState ({ commit }) {
+    vx_ac_ResetSidebarState({ commit }) {
       commit('SET_ACTIVE_MENU', INIT_ACTIVE_MENU);
       commit('SET_MENUS');
     },
-    vx_ac_ToggleSideBar ({ commit }) {
+    vx_ac_ToggleSideBar({ commit }) {
       commit('TOGGLE_SIDEBAR');
-    }
-  }
+    },
+  },
 };

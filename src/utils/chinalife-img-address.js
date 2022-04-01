@@ -13,7 +13,10 @@ const IMG1_DOMAIN_EXP = new RegExp(IMG1_DOMAIN, 'g');
 const IMG2_DOMAIN_EXP = new RegExp(IMG2_DOMAIN, 'g');
 const IMG1_IP_PORT_EXP = new RegExp(IMG1_IP_PORT, 'g');
 const IMG2_IP_PORT_EXP = new RegExp(IMG2_IP_PORT, 'g');
-const IMG_JD_DOMAIN_EXP = new RegExp('(http(s)?:)?//img[0-9]+.360buyimg.com', 'g');
+const IMG_JD_DOMAIN_EXP = new RegExp(
+  '(http(s)?:)?//img[0-9]+.360buyimg.com',
+  'g'
+);
 
 /**
  * 国寿图片域名访问转换为ip、port访问
@@ -32,8 +35,7 @@ const convertImgAddress = (src) => {
     src = src.replace(IMG_JD_DOMAIN_EXP, IMG_JD_IP_PORT);
 
     return src;
-  }
-  catch (error) {
+  } catch (error) {
     return src;
   }
 };
@@ -54,14 +56,9 @@ const revertImgAddress = (src) => {
     src = src.replace(IMG2_IP_PORT_EXP, IMG2_DOMAIN);
 
     return src;
-  }
-  catch (error) {
+  } catch (error) {
     return src;
   }
 };
 
-export {
-  isChinalife,
-  convertImgAddress,
-  revertImgAddress
-};
+export { isChinalife, convertImgAddress, revertImgAddress };

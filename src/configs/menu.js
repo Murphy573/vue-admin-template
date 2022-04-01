@@ -14,51 +14,51 @@ export default [
     meta: {
       icon: 'dashboard',
       affix: true,
-      title: 'dashboard'
-    }
+      title: 'dashboard',
+    },
   },
   {
     name: 'eg',
     meta: {
       icon: 'chart',
-      title: 'eg'
+      title: 'eg',
     },
     children: [
       {
         name: 'eg1',
         meta: {
           title: 'eg1',
-          permissions: ['CODE2']
-        }
+          permissions: ['CODE2'],
+        },
       },
       {
         name: 'eg2',
         meta: {
           title: 'eg2',
-          permissions: ['CODE1', 'CODE2']
-        }
+          permissions: ['CODE1', 'CODE2'],
+        },
       },
       {
         name: 'eg3',
         meta: {
-          title: 'eg3'
+          title: 'eg3',
         },
         children: [
           {
             name: 'eg33',
             meta: {
               title: 'eg33',
-              permissions: ['CODE1']
-            }
-          }
-        ]
+              permissions: ['CODE1'],
+            },
+          },
+        ],
       },
       {
         name: 'eg4',
         meta: {
-          title: 'eg4'
-        }
-      }
-    ]
-  }
+          title: 'eg4',
+        },
+      },
+    ],
+  },
 ];

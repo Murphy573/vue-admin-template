@@ -1,23 +1,22 @@
 <template>
   <div class="sidebar-item-container">
-    <el-submenu v-if="item.children && item.children.length"
+    <el-submenu
+      v-if="item.children && item.children.length"
       :index="item.name"
       popper-append-to-body>
       <!-- 创建菜单分组 -->
       <template slot="title">
-        <Item :icon="item.meta.icon"
-          :title="generateTitle(item.meta.title)" />
+        <Item :icon="item.meta.icon" :title="generateTitle(item.meta.title)" />
       </template>
       <!-- 递归调用自身，直到subItem不含有子节点 -->
-      <sidebar-item v-for="subItem of item.children"
+      <sidebar-item
+        v-for="subItem of item.children"
         :item="subItem"
         :key="subItem.name"></sidebar-item>
     </el-submenu>
 
-    <el-menu-item v-else
-      :index="item.name">
-      <Item :icon="item.meta.icon"
-        :title="generateTitle(item.meta.title)" />
+    <el-menu-item v-else :index="item.name">
+      <Item :icon="item.meta.icon" :title="generateTitle(item.meta.title)" />
     </el-menu-item>
   </div>
 </template>
@@ -33,15 +32,15 @@ export default {
   props: {
     item: {
       type: Object,
-      require: true
-    }
+      require: true,
+    },
   },
 
   methods: {
-    generateTitle (title) {
+    generateTitle(title) {
       return this.$t(`navigation.${title}`);
-    }
-  }
+    },
+  },
 };
 </script>
 

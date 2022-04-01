@@ -5,7 +5,7 @@ import { isPlainObj } from './common';
  * @param {String} url 传入的url
  * @returns {String} 参数值
  */
-export function getUrlParam (name, url = null) {
+export function getUrlParam(name, url = null) {
   const reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
   const r = url
     ? new URL(url).search.substr(1).match(reg)
@@ -19,7 +19,7 @@ export function getUrlParam (name, url = null) {
  * @param {String} url url
  * @returns {Object}
  */
-export function convertUrlParam2Obj (url) {
+export function convertUrlParam2Obj(url) {
   const search = url.split('?')[1];
   if (!search) {
     return {};
@@ -42,10 +42,10 @@ export function convertUrlParam2Obj (url) {
  * 将对象转为url参数
  * @param {Object} obj 传入的对象
  */
-export function convertObj2UrlParam (obj) {
+export function convertObj2UrlParam(obj) {
   if (!obj) return '';
   return Object.keys(obj)
-    .map(key => {
+    .map((key) => {
       if (obj[key] === undefined) return '';
       return encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]);
     })
@@ -57,7 +57,7 @@ export function convertObj2UrlParam (obj) {
  * @param {String} url url
  * @param {Object} paramObj 参数
  */
-export function appendUrlParams (url, paramObj) {
+export function appendUrlParams(url, paramObj) {
   if (!url) return '';
   if (!paramObj || !isPlainObj(paramObj)) return url;
 
@@ -76,7 +76,7 @@ export function appendUrlParams (url, paramObj) {
  * @param {String} url 网址字符串
  * @param {Array<String>} params 参数名称列表
  */
-export function deleteUrlParams (url, params) {
+export function deleteUrlParams(url, params) {
   if (!url || !Array.isArray(params)) return url;
   let paramIndex = url.indexOf('?');
   if (paramIndex === -1) {
@@ -89,16 +89,11 @@ export function deleteUrlParams (url, params) {
   params.forEach((item) => {
     let pattern = '&' + item + '=([^&]*)';
     if (searchParams.match(pattern)) {
-      searchParams = searchParams.replace(
-        searchParams.match(pattern)[0],
-        ''
-      );
+      searchParams = searchParams.replace(searchParams.match(pattern)[0], '');
     }
   });
   searchParams =
-          searchParams.indexOf('&') === 0
-            ? searchParams.substring(1)
-            : searchParams;
+    searchParams.indexOf('&') === 0 ? searchParams.substring(1) : searchParams;
   if (searchParams.length) {
     url += '?' + searchParams;
   }

@@ -32,8 +32,8 @@ module.exports = {
         // git版本回滚
         'revert',
         // 构建过程或辅助工具的变动：npm webpack
-        'chore'
-      ]
+        'chore',
+      ],
     ],
     // 0:disable 1:warning  2:error
     // 类型区分大小写
@@ -57,6 +57,6 @@ module.exports = {
     // 尾部之前是否应该有空行
     'footer-leading-blank': [1, 'always'],
     // 尾部字符长度
-    'footer-max-line-length': [1, 'always', 120]
-  }
+    'footer-max-line-length': [1, 'always', 120],
+  },
 };

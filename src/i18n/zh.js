@@ -7,12 +7,12 @@ export default {
     eg3: '示例3',
     eg33: '示例33',
     eg4: '示例4',
-    detail: '示例4详情'
+    detail: '示例4详情',
   },
   tagsView: {
     refresh: '刷新',
     close: '关闭',
     closeOthers: '关闭其它',
-    closeAll: '关闭所有'
-  }
+    closeAll: '关闭所有',
+  },
 };
