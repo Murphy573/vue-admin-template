@@ -182,10 +182,14 @@ export default {
         this.imgOriginOnePercentSize.imgOriginOnePercentHeight,
         this.currentPercent
       );
-      const imgRenderLeft =
-        (this.imgPreviewDomSize.imgPreviewDomWidth - imgRenderWidth) / 2;
-      const imgRenderTop =
-        (this.imgPreviewDomSize.imgPreviewDomHeight - imgRenderHeight) / 2;
+      const imgRenderLeft = this.calcCenterPosition(
+        this.imgPreviewDomSize.imgPreviewDomWidth,
+        imgRenderWidth
+      );
+      const imgRenderTop = this.calcCenterPosition(
+        this.imgPreviewDomSize.imgPreviewDomHeight,
+        imgRenderHeight
+      );
 
       this.imgRenderSize = {
         imgRenderWidth,
