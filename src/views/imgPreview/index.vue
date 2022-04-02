@@ -147,6 +147,9 @@ export default {
       if (addedPercent >= MaxPercent) {
         addedPercent = MaxPercent;
       }
+      // 相等不渲染
+      if (addedPercent === this.currentPercent) return;
+
       this.currentPercent = addedPercent;
 
       this.rendersss();
@@ -157,6 +160,9 @@ export default {
       if (minusedPercent <= MinPercent) {
         minusedPercent = MinPercent;
       }
+      // 相等不渲染
+      if (minusedPercent === this.currentPercent) return;
+
       this.currentPercent = minusedPercent;
 
       this.rendersss();
