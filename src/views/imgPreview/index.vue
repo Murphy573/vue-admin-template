@@ -281,39 +281,37 @@ export default {
           newRenderHeight
         );
 
-        if (!isZoomIn) {
-          const { max: maxTop, min: minTop } = this.genMoveImgTopMaxMin;
-          const { max: maxLeft, min: minLeft } = this.genMoveImgLeftMaxMin;
-          // 缩小前是否到上边界
-          if (newRenderTop >= maxTop) {
-            newRenderTop = maxTop;
-          }
-          // 缩小前是否到右边界
-          if (newRenderLeft <= minLeft) {
-            newRenderLeft = minLeft;
-          }
-          // 缩小前是否到下边界
-          if (newRenderTop <= minTop) {
-            newRenderTop = minTop;
-          }
-          // 缩小前是否到左边界
-          if (newRenderLeft >= maxLeft) {
-            newRenderLeft = maxLeft;
-          }
-          // 如果宽度小于容器宽度，则水平居中
-          if (newRenderWidth <= imgPreviewDomWidth) {
-            newRenderLeft = this.calcCenterPosition(
-              imgPreviewDomWidth,
-              newRenderWidth
-            );
-          }
-          // 如果高度小于容器高度，则垂直居中
-          if (newRenderHeight <= imgPreviewDomHeight) {
-            newRenderTop = this.calcCenterPosition(
-              imgPreviewDomHeight,
-              newRenderHeight
-            );
-          }
+        const { max: maxTop, min: minTop } = this.genMoveImgTopMaxMin;
+        const { max: maxLeft, min: minLeft } = this.genMoveImgLeftMaxMin;
+        // 缩小前是否到上边界
+        if (newRenderTop >= maxTop) {
+          newRenderTop = maxTop;
+        }
+        // 缩小前是否到右边界
+        if (newRenderLeft <= minLeft) {
+          newRenderLeft = minLeft;
+        }
+        // 缩小前是否到下边界
+        if (newRenderTop <= minTop) {
+          newRenderTop = minTop;
+        }
+        // 缩小前是否到左边界
+        if (newRenderLeft >= maxLeft) {
+          newRenderLeft = maxLeft;
+        }
+        // 如果宽度小于容器宽度，则水平居中
+        if (newRenderWidth <= imgPreviewDomWidth) {
+          newRenderLeft = this.calcCenterPosition(
+            imgPreviewDomWidth,
+            newRenderWidth
+          );
+        }
+        // 如果高度小于容器高度，则垂直居中
+        if (newRenderHeight <= imgPreviewDomHeight) {
+          newRenderTop = this.calcCenterPosition(
+            imgPreviewDomHeight,
+            newRenderHeight
+          );
         }
       }
 
