@@ -1,20 +1,25 @@
 <template>
   <div class="preview-container">
     <div ref="imgPreviewRef" class="img-preview">
+      <div
+        class="cover-div"
+        :style="genImgRenderStyle"
+        @mousedown="handleImgRenderMousedown"></div>
       <img :src="imgurl" class="img" :style="genImgRenderStyle" />
     </div>
 
     <div class="control">
       <span>当前比率：{{ currentPercent | percent }}</span>
       &nbsp;&nbsp;&nbsp;&nbsp;
-      <el-button @click="zoomIn(0.1)">放大(+10%)</el-button>
-      <el-button @click="zoomOut(0.1)">缩小(-10%)</el-button>
+      <el-button @click="zoomIn(0.5)">放大(+50%)</el-button>
+      <el-button @click="zoomOut(0.5)">缩小(-50%)</el-button>
       <el-button @click="resize2Adaptive">自适应填充</el-button>
     </div>
   </div>
 </template>
 
 <script>
+import MouseMixin from '@/mixins/mouse.mixin.js';
 // 最小比率
 const MinPercent = 0.01;
 // 最大比率
@@ -23,7 +28,7 @@ const MaxPercent = 4;
 export default {
   name: 'ImgPreview',
 
-  mixins: [],
+  mixins: [MouseMixin],
 
   components: {},
 
@@ -46,6 +51,11 @@ export default {
         imgRenderHeight: 0,
         imgRenderTop: 0,
         imgRenderLeft: 0,
+      },
+      // 图片移动前原始位置
+      imgMousemoveStartOriginPos: {
+        imgMousemoveStartOriginTop: 0,
+        imgMousemoveStartOriginLeft: 0,
       },
       // 图片原始1%size
       imgOriginOnePercentSize: {
@@ -73,6 +83,45 @@ export default {
         left: imgRenderLeft + 'px',
         top: imgRenderTop + 'px',
       };
+    },
+    // 是否能够移动图片top位置
+    genCanMoveImgTop() {
+      const { imgRenderTop } = this.imgRenderSize;
+      return (
+        imgRenderTop <= this.genMoveImgTopMaxMin.max &&
+        imgRenderTop >= this.genMoveImgTopMaxMin.min
+      );
+    },
+    // 是否能够移动图片left位置
+    genCanMoveImgLeft() {
+      const { imgRenderLeft } = this.imgRenderSize;
+      return (
+        imgRenderLeft <= this.genMoveImgLeftMaxMin.max ||
+        imgRenderLeft >= this.genMoveImgLeftMaxMin.min
+      );
+    },
+    // 计算可移动top最大最小值
+    genMoveImgTopMaxMin() {
+      const { imgPreviewDomHeight } = this.imgPreviewDomSize;
+      const { imgRenderHeight } = this.imgRenderSize;
+      return {
+        max: 0,
+        min: imgPreviewDomHeight - imgRenderHeight,
+      };
+    },
+    // 计算可移动left最大最小值
+    genMoveImgLeftMaxMin() {
+      const { imgPreviewDomWidth } = this.imgPreviewDomSize;
+      const { imgRenderWidth } = this.imgRenderSize;
+      return {
+        max: 0,
+        min: imgPreviewDomWidth - imgRenderWidth,
+      };
+    },
+
+    // 是否可以移动图片
+    getCanMoveImg() {
+      return this.genCanMoveImgTop || this.genCanMoveImgLeft;
     },
   },
 
@@ -157,7 +206,7 @@ export default {
 
       this.currentPercent = addedPercent;
 
-      this.rendersss();
+      this.rerenderImg(true);
     },
     // 缩小
     zoomOut(minusPercent) {
@@ -170,10 +219,14 @@ export default {
 
       this.currentPercent = minusedPercent;
 
-      this.rendersss();
+      this.rerenderImg(false);
     },
 
-    rendersss() {
+    /**
+     * 重新渲染图片
+     * @param isZoomIn 是否放大
+     */
+    rerenderImg(isZoomIn = false) {
       const {
         imgRenderWidth: oldImgRenderWidth,
         imgRenderHeight: oldImgRenderHeight,
@@ -181,6 +234,10 @@ export default {
         imgRenderLeft: oldImgRenderLeft,
       } = this.imgRenderSize;
 
+      const { imgPreviewDomWidth, imgPreviewDomHeight } =
+        this.imgPreviewDomSize;
+
+      // 计算最终宽度和高度，并赋值
       const newRenderWidth = this.calcRenderSize(
         this.imgOriginOnePercentSize.imgOriginOnePercentWidth,
         this.currentPercent
@@ -189,21 +246,75 @@ export default {
         this.imgOriginOnePercentSize.imgOriginOnePercentHeight,
         this.currentPercent
       );
+      this.imgRenderSize.imgRenderWidth = newRenderWidth;
+      this.imgRenderSize.imgRenderHeight = newRenderHeight;
 
-      this.imgRenderSize = {
-        imgRenderWidth: newRenderWidth,
-        imgRenderHeight: newRenderHeight,
-        imgRenderLeft: this.calcRenderPosition(
+      let newRenderLeft = 0;
+      let newRenderTop = 0;
+      // 如果宽度和高度都小于容器宽度和高度，则水平垂直居中
+      if (
+        newRenderWidth <= imgPreviewDomWidth &&
+        newRenderHeight <= imgPreviewDomHeight
+      ) {
+        newRenderLeft = this.calcCenterPosition(
+          imgPreviewDomWidth,
+          newRenderWidth
+        );
+        newRenderTop = this.calcCenterPosition(
+          imgPreviewDomHeight,
+          newRenderHeight
+        );
+      } else {
+        newRenderLeft = this.calcRenderPosition(
           oldImgRenderLeft,
           oldImgRenderWidth,
           newRenderWidth
-        ),
-        imgRenderTop: this.calcRenderPosition(
+        );
+
+        newRenderTop = this.calcRenderPosition(
           oldImgRenderTop,
           oldImgRenderHeight,
           newRenderHeight
-        ),
-      };
+        );
+
+        if (!isZoomIn) {
+          const { max: maxTop, min: minTop } = this.genMoveImgTopMaxMin;
+          const { max: maxLeft, min: minLeft } = this.genMoveImgLeftMaxMin;
+          // 缩小前是否到上边界
+          if (newRenderTop >= maxTop) {
+            newRenderTop = maxTop;
+          }
+          // 缩小前是否到右边界
+          if (newRenderLeft <= minLeft) {
+            newRenderLeft = minLeft;
+          }
+          // 缩小前是否到下边界
+          if (newRenderTop <= minTop) {
+            newRenderTop = minTop;
+          }
+          // 缩小前是否到左边界
+          if (newRenderLeft >= maxLeft) {
+            newRenderLeft = maxLeft;
+          }
+          // 如果宽度小于容器宽度，则水平居中
+          if (newRenderWidth <= imgPreviewDomWidth) {
+            newRenderLeft = this.calcCenterPosition(
+              imgPreviewDomWidth,
+              newRenderWidth
+            );
+          }
+          // 如果高度小于容器高度，则垂直居中
+          if (newRenderHeight <= imgPreviewDomHeight) {
+            newRenderTop = this.calcCenterPosition(
+              imgPreviewDomHeight,
+              newRenderHeight
+            );
+          }
+        }
+      }
+
+      this.imgRenderSize.imgRenderLeft = newRenderLeft;
+      this.imgRenderSize.imgRenderTop = newRenderTop;
     },
 
     /**
@@ -226,6 +337,58 @@ export default {
      */
     calcRenderPosition(oldPos, oldSize, newSize) {
       return oldPos - (newSize - oldSize) / 2;
+    },
+    /**
+     * 计算元素某方向在容器内的中心点坐标
+     */
+    calcCenterPosition(containerSize, targetSize) {
+      return (containerSize - targetSize) / 2;
+    },
+
+    handleImgRenderMousedown(e) {
+      if (!this.getCanMoveImg) return;
+
+      this.mousedownHandlerMixin(e);
+      this.imgMousemoveStartOriginPos = {
+        imgMousemoveStartOriginTop: this.imgRenderSize.imgRenderTop,
+        imgMousemoveStartOriginLeft: this.imgRenderSize.imgRenderLeft,
+      };
+      document.addEventListener('mousemove', this.handleDocumentMousemove);
+      document.addEventListener('mouseup', this.handleDocumentMouseup);
+    },
+
+    handleDocumentMousemove(e) {
+      this.mousemoveHandlerMixin(e);
+
+      const { deltaYMixin, deltaXMixin } = this;
+      if (this.genCanMoveImgLeft) {
+        let _left =
+          this.imgMousemoveStartOriginPos.imgMousemoveStartOriginLeft +
+          deltaXMixin;
+
+        const { max, min } = this.genMoveImgLeftMaxMin;
+        // 判断移动边界
+        _left = _left > max ? max : _left < min ? min : _left;
+
+        this.imgRenderSize.imgRenderLeft = _left;
+      }
+
+      if (this.genCanMoveImgTop) {
+        let _top =
+          this.imgMousemoveStartOriginPos.imgMousemoveStartOriginTop +
+          deltaYMixin;
+
+        const { max, min } = this.genMoveImgTopMaxMin;
+        // 判断移动边界
+        _top = _top > max ? max : _top < min ? min : _top;
+
+        this.imgRenderSize.imgRenderTop = _top;
+      }
+    },
+
+    handleDocumentMouseup() {
+      document.removeEventListener('mousemove', this.handleDocumentMousemove);
+      document.removeEventListener('mouseup', this.handleDocumentMouseup);
     },
 
     async initilize() {
@@ -270,6 +433,13 @@ export default {
     background-color: #0f0f14;
     overflow: hidden;
 
+    .cover-div {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 2;
+    }
+
     .img {
       position: absolute;
       left: 0;
@@ -281,6 +451,8 @@ export default {
       background-size: 30px 30px;
       background-color: transparent;
       background-position: 0 0, 15px 15px;
+      user-select: none;
+      z-index: 1;
     }
   }
 }
