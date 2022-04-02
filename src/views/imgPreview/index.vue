@@ -1,6 +1,6 @@
 <template>
   <div class="preview-container">
-    <div ref="imgPreviewRef" class="img-preview">
+    <div ref="imgPreviewRef" class="img-preview" @mousewheel="handleMouseWheel">
       <div
         class="cover-div"
         :style="genImgRenderStyle"
@@ -389,6 +389,18 @@ export default {
     handleDocumentMouseup() {
       document.removeEventListener('mousemove', this.handleDocumentMousemove);
       document.removeEventListener('mouseup', this.handleDocumentMouseup);
+    },
+
+    // 鼠标滚轮事件处理
+    // FIXME: 双指缩放页面会整体放大，有问题
+    handleMouseWheel(e) {
+      const finalData = e.wheelDelta || -e.deltaY;
+      // 向上滚放大
+      if (finalData < 0) {
+        this.zoomIn(0.01);
+      } else {
+        this.zoomOut(0.01);
+      }
     },
 
     async initilize() {
