@@ -9,6 +9,7 @@
       &nbsp;&nbsp;&nbsp;&nbsp;
       <el-button @click="zoomIn(0.1)">放大(+10%)</el-button>
       <el-button @click="zoomOut(0.1)">缩小(-10%)</el-button>
+      <el-button @click="resize2Adaptive">自适应填充</el-button>
     </div>
   </div>
 </template>
@@ -196,6 +197,7 @@ export default {
 
     /**
      * 计算渲染大小size
+     * 公式：新的位置 = 1%的大小 * 缩放比率 * 100
      * @param onePercentSize 1%所占的大小
      * @param percent 缩放比
      */
@@ -204,7 +206,9 @@ export default {
     },
 
     /**
-     * 计算渲染位置
+     * 计算渲染位置，保证缩放后能继续看到当前的图片区域
+     * 公式：新的位置 = （旧的位置值）-（新的size - 旧的size）/ 2
+     * 解释：除以2，图片放大缩小宽度或高度变化后，因为要继续看到当前图片区域，所以用差异值除以2进行调整
      * @param oldVal 旧的位置值
      * @param oldSize 旧的渲染大小（宽度or高度）
      * @param newSize 放大缩小后的渲染大小（宽度or高度）
