@@ -114,11 +114,16 @@ export default {
       const { imgPreviewDomWidth, imgPreviewDomHeight } =
         this.imgPreviewDomSize;
 
+      let currentPercent = 0;
       if (imgOriginWidth >= imgOriginHeight) {
-        this.currentPercent = imgPreviewDomWidth / imgOriginWidth;
+        currentPercent = imgPreviewDomWidth / imgOriginWidth;
       } else {
-        this.currentPercent = imgPreviewDomHeight / imgOriginHeight;
+        currentPercent = imgPreviewDomHeight / imgOriginHeight;
       }
+
+      if (currentPercent === this.currentPercent) return;
+
+      this.currentPercent = currentPercent;
 
       const imgRenderWidth = this.calcRenderSize(
         this.imgOriginOnePercentSize.imgOriginOnePercentWidth,
