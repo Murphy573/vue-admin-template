@@ -36,9 +36,9 @@ export default {
 
   data() {
     return {
-      imgurl: require('./larger-height.png'),
+      // imgurl: require('./larger-height.png'),
       // imgurl: require('./larger-width.png'),
-      // imgurl: require('./width-height-fit.png'),
+      imgurl: require('./width-height-fit.png'),
 
       // 图片原始size
       imgOriginSize: {
@@ -394,14 +394,18 @@ export default {
     },
 
     // 鼠标滚轮事件处理
-    // FIXME: 双指缩放页面会整体放大，有问题
+    // BUGFIX: 解决双指缩放页面会整体放大
     handleMouseWheel(e) {
+      e.preventDefault();
+      e.stopPropagation();
+
       const finalData = e.wheelDelta || -e.deltaY;
-      // 向上滚放大
+
+      // 向上滚缩小
       if (finalData < 0) {
-        this.zoomIn(0.01);
-      } else {
         this.zoomOut(0.01);
+      } else {
+        this.zoomIn(0.01);
       }
     },
 
