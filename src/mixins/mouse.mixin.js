@@ -24,8 +24,6 @@ export default {
       this.offsetYMixin = Math.abs(this.deltaYMixin);
     },
 
-    mouseupHandlerMixin(event) {},
-
     resetMouseActionStatusMixin() {
       this.mouseStartXMixin = 0;
       this.mouseStartYMixin = 0;

@@ -21,9 +21,7 @@
         </div>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item>
-            <router-link :to="{ name: 'changePassword' }">
-              密码修改
-            </router-link>
+            <router-link :to="{ name: 'dashboard' }"> 密码修改 </router-link>
           </el-dropdown-item>
           <el-dropdown-item divided>
             <span style="display: block" @click="logout">退出</span>

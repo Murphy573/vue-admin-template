@@ -18,13 +18,16 @@
 
       <div ref="minimapRef" class="minimap">
         <div
+          v-show="showMinimapSelectRect"
+          ref="selectRectRef"
           class="select-rect"
           :style="genMinimapSelectRectRenderStyle"
-          @mousedown="handleMinimapSelectRectMousedown"></div>
+          @mousedown.stop="handleMinimapSelectRectMousedown"></div>
         <img
           :src="imgurl"
           class="minimap-img"
-          :style="genMinimapImgRenderStyle" />
+          :style="genMinimapImgRenderStyle"
+          @click.stop="handleMinimapImgClick" />
       </div>
     </div>
   </div>
@@ -179,13 +182,25 @@ export default {
         min: imgPreviewDomWidth - imgRenderWidth,
       };
     },
+    // 是否展示小地图画框
+    showMinimapSelectRect() {
+      const { imgRenderLeft, imgRenderTop } = this.imgRenderSize;
+      const { max: maxTop, min: minTop } = this.genMoveImgTopMaxMin;
+      const { max: maxLeft, min: minLeft } = this.genMoveImgLeftMaxMin;
+      return (
+        imgRenderLeft < maxLeft ||
+        imgRenderLeft > minLeft ||
+        imgRenderTop < maxTop ||
+        imgRenderTop > minTop
+      );
+    },
 
     // 是否可以移动图片
     getCanMoveImg() {
       return this.genCanMoveImgTop || this.genCanMoveImgLeft;
     },
 
-    // 渲染图片和鹰眼图片的缩放比
+    // 渲染图片和小地图图片的缩放比
     getPrevewImgAndMinimapImgRatio() {
       return (
         this.imgRenderSize.imgRenderWidth /
@@ -200,15 +215,12 @@ export default {
     },
   },
 
-  watch: {},
-
-  created() {},
-
   methods: {
     loadImg() {
       return new Promise((resolve, reject) => {
         let img = new Image();
         img.src = this.imgurl;
+        img.crossOrigin = 'anonymous';
         img.onload = function () {
           resolve(img);
         };
@@ -357,19 +369,19 @@ export default {
 
         const { max: maxTop, min: minTop } = this.genMoveImgTopMaxMin;
         const { max: maxLeft, min: minLeft } = this.genMoveImgLeftMaxMin;
-        // 缩小前是否到上边界
+        // 是否到上边界
         if (newRenderTop >= maxTop) {
           newRenderTop = maxTop;
         }
-        // 缩小前是否到右边界
+        // 是否到右边界
         if (newRenderLeft <= minLeft) {
           newRenderLeft = minLeft;
         }
-        // 缩小前是否到下边界
+        // 是否到下边界
         if (newRenderTop <= minTop) {
           newRenderTop = minTop;
         }
-        // 缩小前是否到左边界
+        // 是否到左边界
         if (newRenderLeft >= maxLeft) {
           newRenderLeft = maxLeft;
         }
@@ -398,8 +410,8 @@ export default {
      * 当渲染图片缩放、移动位置时：
      *  	width = 图片预览容器宽度/缩放比
      *    height= 图片预览容器高度/缩放比
-     *    left = 鹰眼图片的渲染left  -（图片区域left / 缩放比）
-     *    top = 鹰眼图片的渲染left -（图片区域top / 缩放比）
+     *    left = 小地图图片的渲染left  -（图片区域left / 缩放比）
+     *    top = 小地图图片的渲染left -（图片区域top / 缩放比）
      */
     rerenderMinimapSelectRect() {
       const {
@@ -449,51 +461,93 @@ export default {
       return (containerSize - targetSize) / 2;
     },
 
+    // 按下图片渲染位置
     handleImgRenderMousedown(e) {
+      this.mousedownTarget = 'imgRender';
+      this.handleDocumentMousedown(e);
+    },
+
+    // 按下小地图红框渲染位置
+    handleMinimapSelectRectMousedown(e) {
+      this.mousedownTarget = 'minimapSelectRect';
+      this.handleDocumentMousedown(e);
+    },
+
+    // 统一处理按下事件
+    handleDocumentMousedown(e) {
       if (!this.getCanMoveImg) return;
 
-      this.mousedownTarget = 'imgRender';
       this.mousedownHandlerMixin(e);
+      // 记录移动图片前的初始值
       this.imgMousemoveStartOriginPos = {
         imgMousemoveStartOriginTop: this.imgRenderSize.imgRenderTop,
         imgMousemoveStartOriginLeft: this.imgRenderSize.imgRenderLeft,
       };
-      document.addEventListener('mousemove', this.handleImgRenderMousemove);
+
+      document.addEventListener('mousemove', this.handleDocumentMousemove);
       document.addEventListener('mouseup', this.handleDocumentMouseup);
     },
 
-    handleImgRenderMousemove(e) {
+    // 点击小地图图片未被红框覆盖的空白区域
+    handleMinimapImgClick(e) {
+      if (!this.getCanMoveImg) return;
+
+      this.resetMouseActionStatusMixin();
+      this.mousedownTarget = 'minimapSelectRect';
+      // 记录移动图片前的初始值
+      this.imgMousemoveStartOriginPos = {
+        imgMousemoveStartOriginTop: this.imgRenderSize.imgRenderTop,
+        imgMousemoveStartOriginLeft: this.imgRenderSize.imgRenderLeft,
+      };
+
+      const { left: originLeft, top: originTop } =
+        this.$refs.selectRectRef.getBoundingClientRect();
+      const { minimapSelectRectRenderWidth, minimapSelectRectRenderHeight } =
+        this.minimapSelectRectRenderSize;
+
+      this.mouseStartXMixin = originLeft + minimapSelectRectRenderWidth / 2;
+      this.mouseStartYMixin = originTop + minimapSelectRectRenderHeight / 2;
+
+      this.$nextTick(() => {
+        this.handleDocumentMousemove(e);
+      });
+    },
+
+    /**
+     * 图片拖动
+     * left/top = 图片初始位置 + 拖动偏移量 * 比率
+     * 计算边界
+     */
+    handleDocumentMousemove(e) {
       this.mousemoveHandlerMixin(e);
 
       const { deltaYMixin, deltaXMixin } = this;
 
       // 如果鼠标按下的是图片渲染区域，则比率是1
-      // 如果鼠标按下的是鹰眼区域选择框，则是负的缩放比
+      // 如果鼠标按下的是小地图区域选择框，则是负的缩放比
       const ratio =
         this.mousedownTarget === 'imgRender'
           ? 1
           : -this.getPrevewImgAndMinimapImgRatio;
 
+      // 计算最终left
       if (this.genCanMoveImgLeft) {
         let _left =
           this.imgMousemoveStartOriginPos.imgMousemoveStartOriginLeft +
           deltaXMixin * ratio;
-
-        const { max, min } = this.genMoveImgLeftMaxMin;
-        // 判断移动边界
-        _left = _left > max ? max : _left < min ? min : _left;
+        const { max: maxLeft, min: minLeft } = this.genMoveImgLeftMaxMin;
+        _left = _left > maxLeft ? maxLeft : _left < minLeft ? minLeft : _left;
 
         this.imgRenderSize.imgRenderLeft = _left;
       }
 
+      // 计算最终top
       if (this.genCanMoveImgTop) {
         let _top =
           this.imgMousemoveStartOriginPos.imgMousemoveStartOriginTop +
           deltaYMixin * ratio;
-
-        const { max, min } = this.genMoveImgTopMaxMin;
-        // 判断移动边界
-        _top = _top > max ? max : _top < min ? min : _top;
+        const { max: maxTop, min: minTop } = this.genMoveImgTopMaxMin;
+        _top = _top > maxTop ? maxTop : _top < minTop ? minTop : _top;
 
         this.imgRenderSize.imgRenderTop = _top;
       }
@@ -501,23 +555,9 @@ export default {
       this.rerenderMinimapSelectRect();
     },
 
-    handleMinimapSelectRectMousedown(e) {
-      if (!this.getCanMoveImg) return;
-
-      this.mousedownTarget === 'minimapSelectRect';
-      this.mousedownHandlerMixin(e);
-
-      this.imgMousemoveStartOriginPos = {
-        imgMousemoveStartOriginTop: this.imgRenderSize.imgRenderTop,
-        imgMousemoveStartOriginLeft: this.imgRenderSize.imgRenderLeft,
-      };
-
-      document.addEventListener('mousemove', this.handleImgRenderMousemove);
-      document.addEventListener('mouseup', this.handleDocumentMouseup);
-    },
-
     handleDocumentMouseup() {
-      document.removeEventListener('mousemove', this.handleImgRenderMousemove);
+      this.resetMouseActionStatusMixin();
+      document.removeEventListener('mousemove', this.handleDocumentMousemove);
       document.removeEventListener('mouseup', this.handleDocumentMouseup);
     },
 
@@ -546,7 +586,7 @@ export default {
       const { imgOriginWidth, imgOriginHeight } = this.imgOriginSize;
 
       let currentPercent = 0;
-      if (imgOriginWidth >= miniMapDomWidth) {
+      if (imgOriginWidth >= imgOriginHeight) {
         currentPercent = miniMapDomWidth / imgOriginWidth;
       } else {
         currentPercent = miniMapDomHeight / imgOriginHeight;
@@ -560,6 +600,7 @@ export default {
         this.imgOriginOnePercentSize.imgOriginOnePercentHeight,
         currentPercent
       );
+
       const minimapImgRenderLeft = this.calcCenterPosition(
         miniMapDomWidth,
         minimapImgRenderWidth
