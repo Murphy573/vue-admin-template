@@ -14,6 +14,18 @@
       <el-button @click="zoomIn(0.5)">放大(+50%)</el-button>
       <el-button @click="zoomOut(0.5)">缩小(-50%)</el-button>
       <el-button @click="resize2Adaptive">自适应填充</el-button>
+      <el-tag>缩放比：{{ getPrevewImgAndMinimapImgRatio }}</el-tag>
+
+      <div ref="minimapRef" class="minimap">
+        <div
+          class="select-rect"
+          :style="genMinimapSelectRectRenderStyle"
+          @mousedown="handleMinimapSelectRectMousedown"></div>
+        <img
+          :src="imgurl"
+          class="minimap-img"
+          :style="genMinimapImgRenderStyle" />
+      </div>
     </div>
   </div>
 </template>
@@ -29,10 +41,6 @@ export default {
   name: 'ImgPreview',
 
   mixins: [MouseMixin],
-
-  components: {},
-
-  props: {},
 
   data() {
     return {
@@ -69,6 +77,29 @@ export default {
       },
       // 当前缩放比率
       currentPercent: MinPercent,
+
+      // 小地图
+      // 小地图容器size
+      miniMapDomSize: {
+        miniMapDomWidth: 0,
+        miniMapDomHeight: 0,
+      },
+      // 小地图图片渲染size
+      minimapImgRenderSize: {
+        minimapImgRenderWidth: 0,
+        minimapImgRenderHeight: 0,
+        minimapImgRenderTop: 0,
+        minimapImgRenderLeft: 0,
+      },
+      // 小地图画框渲染size
+      minimapSelectRectRenderSize: {
+        minimapSelectRectRenderWidth: 0,
+        minimapSelectRectRenderHeight: 0,
+        minimapSelectRectRenderTop: 0,
+        minimapSelectRectRenderLeft: 0,
+      },
+      // mousedown目标
+      mousedownTarget: '',
     };
   },
 
@@ -82,6 +113,36 @@ export default {
         height: imgRenderHeight + 'px',
         left: imgRenderLeft + 'px',
         top: imgRenderTop + 'px',
+      };
+    },
+    genMinimapImgRenderStyle() {
+      const {
+        minimapImgRenderWidth,
+        minimapImgRenderHeight,
+        minimapImgRenderTop,
+        minimapImgRenderLeft,
+      } = this.minimapImgRenderSize;
+
+      return {
+        width: minimapImgRenderWidth + 'px',
+        height: minimapImgRenderHeight + 'px',
+        left: minimapImgRenderLeft + 'px',
+        top: minimapImgRenderTop + 'px',
+      };
+    },
+    genMinimapSelectRectRenderStyle() {
+      const {
+        minimapSelectRectRenderWidth,
+        minimapSelectRectRenderHeight,
+        minimapSelectRectRenderTop,
+        minimapSelectRectRenderLeft,
+      } = this.minimapSelectRectRenderSize;
+
+      return {
+        width: minimapSelectRectRenderWidth + 'px',
+        height: minimapSelectRectRenderHeight + 'px',
+        left: minimapSelectRectRenderLeft + 'px',
+        top: minimapSelectRectRenderTop + 'px',
       };
     },
     // 是否能够移动图片top位置
@@ -122,6 +183,14 @@ export default {
     // 是否可以移动图片
     getCanMoveImg() {
       return this.genCanMoveImgTop || this.genCanMoveImgLeft;
+    },
+
+    // 渲染图片和鹰眼图片的缩放比
+    getPrevewImgAndMinimapImgRatio() {
+      return (
+        this.imgRenderSize.imgRenderWidth /
+        this.minimapImgRenderSize.minimapImgRenderWidth
+      );
     },
   },
 
@@ -197,6 +266,8 @@ export default {
         imgRenderLeft,
         imgRenderTop,
       };
+
+      this.rerenderMinimapSelectRect();
     },
 
     // 放大
@@ -210,7 +281,9 @@ export default {
 
       this.currentPercent = addedPercent;
 
-      this.rerenderImg(true);
+      this.rerenderImg();
+
+      this.rerenderMinimapSelectRect();
     },
     // 缩小
     zoomOut(minusPercent) {
@@ -223,14 +296,15 @@ export default {
 
       this.currentPercent = minusedPercent;
 
-      this.rerenderImg(false);
+      this.rerenderImg();
+
+      this.rerenderMinimapSelectRect();
     },
 
     /**
      * 重新渲染图片
-     * @param isZoomIn 是否放大
      */
-    rerenderImg(isZoomIn = false) {
+    rerenderImg() {
       const {
         imgRenderWidth: oldImgRenderWidth,
         imgRenderHeight: oldImgRenderHeight,
@@ -320,6 +394,34 @@ export default {
     },
 
     /**
+     * 重新渲染小地图画框
+     * 当渲染图片缩放、移动位置时：
+     *  	width = 图片预览容器宽度/缩放比
+     *    height= 图片预览容器高度/缩放比
+     *    left = 鹰眼图片的渲染left  -（图片区域left / 缩放比）
+     *    top = 鹰眼图片的渲染left -（图片区域top / 缩放比）
+     */
+    rerenderMinimapSelectRect() {
+      const {
+        imgRenderSize: { imgRenderTop, imgRenderLeft },
+        getPrevewImgAndMinimapImgRatio,
+        imgPreviewDomSize: { imgPreviewDomWidth, imgPreviewDomHeight },
+        minimapImgRenderSize: { minimapImgRenderTop, minimapImgRenderLeft },
+      } = this;
+
+      this.minimapSelectRectRenderSize = {
+        minimapSelectRectRenderWidth:
+          imgPreviewDomWidth / getPrevewImgAndMinimapImgRatio,
+        minimapSelectRectRenderHeight:
+          imgPreviewDomHeight / getPrevewImgAndMinimapImgRatio,
+        minimapSelectRectRenderTop:
+          minimapImgRenderTop - imgRenderTop / getPrevewImgAndMinimapImgRatio,
+        minimapSelectRectRenderLeft:
+          minimapImgRenderLeft - imgRenderLeft / getPrevewImgAndMinimapImgRatio,
+      };
+    },
+
+    /**
      * 计算渲染大小size
      * 公式：新的位置 = 1%的大小 * 缩放比率 * 100
      * @param onePercentSize 1%所占的大小
@@ -350,23 +452,32 @@ export default {
     handleImgRenderMousedown(e) {
       if (!this.getCanMoveImg) return;
 
+      this.mousedownTarget = 'imgRender';
       this.mousedownHandlerMixin(e);
       this.imgMousemoveStartOriginPos = {
         imgMousemoveStartOriginTop: this.imgRenderSize.imgRenderTop,
         imgMousemoveStartOriginLeft: this.imgRenderSize.imgRenderLeft,
       };
-      document.addEventListener('mousemove', this.handleDocumentMousemove);
+      document.addEventListener('mousemove', this.handleImgRenderMousemove);
       document.addEventListener('mouseup', this.handleDocumentMouseup);
     },
 
-    handleDocumentMousemove(e) {
+    handleImgRenderMousemove(e) {
       this.mousemoveHandlerMixin(e);
 
       const { deltaYMixin, deltaXMixin } = this;
+
+      // 如果鼠标按下的是图片渲染区域，则比率是1
+      // 如果鼠标按下的是鹰眼区域选择框，则是负的缩放比
+      const ratio =
+        this.mousedownTarget === 'imgRender'
+          ? 1
+          : -this.getPrevewImgAndMinimapImgRatio;
+
       if (this.genCanMoveImgLeft) {
         let _left =
           this.imgMousemoveStartOriginPos.imgMousemoveStartOriginLeft +
-          deltaXMixin;
+          deltaXMixin * ratio;
 
         const { max, min } = this.genMoveImgLeftMaxMin;
         // 判断移动边界
@@ -378,7 +489,7 @@ export default {
       if (this.genCanMoveImgTop) {
         let _top =
           this.imgMousemoveStartOriginPos.imgMousemoveStartOriginTop +
-          deltaYMixin;
+          deltaYMixin * ratio;
 
         const { max, min } = this.genMoveImgTopMaxMin;
         // 判断移动边界
@@ -386,10 +497,27 @@ export default {
 
         this.imgRenderSize.imgRenderTop = _top;
       }
+
+      this.rerenderMinimapSelectRect();
+    },
+
+    handleMinimapSelectRectMousedown(e) {
+      if (!this.getCanMoveImg) return;
+
+      this.mousedownTarget === 'minimapSelectRect';
+      this.mousedownHandlerMixin(e);
+
+      this.imgMousemoveStartOriginPos = {
+        imgMousemoveStartOriginTop: this.imgRenderSize.imgRenderTop,
+        imgMousemoveStartOriginLeft: this.imgRenderSize.imgRenderLeft,
+      };
+
+      document.addEventListener('mousemove', this.handleImgRenderMousemove);
+      document.addEventListener('mouseup', this.handleDocumentMouseup);
     },
 
     handleDocumentMouseup() {
-      document.removeEventListener('mousemove', this.handleDocumentMousemove);
+      document.removeEventListener('mousemove', this.handleImgRenderMousemove);
       document.removeEventListener('mouseup', this.handleDocumentMouseup);
     },
 
@@ -407,6 +535,51 @@ export default {
       } else {
         this.zoomIn(0.01);
       }
+    },
+
+    // 初始化小地图，将图片填充至自适应大小
+    initMiniMap() {
+      const $minimapDom = this.$refs.minimapRef;
+      const { width: miniMapDomWidth, height: miniMapDomHeight } =
+        $minimapDom.getBoundingClientRect();
+
+      const { imgOriginWidth, imgOriginHeight } = this.imgOriginSize;
+
+      let currentPercent = 0;
+      if (imgOriginWidth >= miniMapDomWidth) {
+        currentPercent = miniMapDomWidth / imgOriginWidth;
+      } else {
+        currentPercent = miniMapDomHeight / imgOriginHeight;
+      }
+
+      const minimapImgRenderWidth = this.calcRenderSize(
+        this.imgOriginOnePercentSize.imgOriginOnePercentWidth,
+        currentPercent
+      );
+      const minimapImgRenderHeight = this.calcRenderSize(
+        this.imgOriginOnePercentSize.imgOriginOnePercentHeight,
+        currentPercent
+      );
+      const minimapImgRenderLeft = this.calcCenterPosition(
+        miniMapDomWidth,
+        minimapImgRenderWidth
+      );
+      const minimapImgRenderTop = this.calcCenterPosition(
+        miniMapDomHeight,
+        minimapImgRenderHeight
+      );
+
+      this.miniMapDomSize = {
+        miniMapDomWidth,
+        miniMapDomHeight,
+      };
+
+      this.minimapImgRenderSize = {
+        minimapImgRenderWidth,
+        minimapImgRenderHeight,
+        minimapImgRenderLeft,
+        minimapImgRenderTop,
+      };
     },
 
     async initilize() {
@@ -429,6 +602,7 @@ export default {
           imgPreviewDomHeight: height,
         };
 
+        this.initMiniMap();
         this.resize2Adaptive();
       } catch (error) {}
     },
@@ -446,8 +620,8 @@ export default {
 
   .img-preview {
     position: relative;
-    width: 997.33px;
-    height: 639px;
+    width: 900px;
+    height: 600px;
     background-color: #0f0f14;
     overflow: hidden;
 
@@ -465,10 +639,35 @@ export default {
       width: 100%;
       height: 100%;
       display: block;
+      user-select: none;
+      z-index: 1;
+    }
+  }
+
+  .minimap {
+    position: relative;
+    width: 300px;
+    height: 200px;
+    background-color: #0f0f14;
+    overflow: hidden;
+    .select-rect {
       position: absolute;
-      background-size: 30px 30px;
-      background-color: transparent;
-      background-position: 0 0, 15px 15px;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 2;
+      border: 2px solid red;
+    }
+
+    .minimap-img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
       user-select: none;
       z-index: 1;
     }
