@@ -63,7 +63,7 @@ export default {
         imgRenderTop: 0,
         imgRenderLeft: 0,
       },
-      // 图片移动前原始位置
+      // 图片移动前初始位置
       imgMousemoveStartOriginPos: {
         imgMousemoveStartOriginTop: 0,
         imgMousemoveStartOriginLeft: 0,
@@ -490,7 +490,7 @@ export default {
 
     // 点击小地图图片未被红框覆盖的空白区域
     handleMinimapImgClick(e) {
-      if (!this.getCanMoveImg) return;
+      if (!this.getCanMoveImg || !this.showMinimapSelectRect) return;
 
       this.resetMouseActionStatusMixin();
       this.mousedownTarget = 'minimapSelectRect';
