@@ -22,3 +22,4 @@ yarn-error.log*
 
 # 打包目录
 /admin-prod-dist
+/vue-admin-tpl-deploy-dist
