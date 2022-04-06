@@ -50,6 +50,7 @@ export default {
       // imgurl: require('./larger-height.png'),
       // imgurl: require('./larger-width.png'),
       imgurl: require('./width-height-fit.png'),
+      // imgurl: 'https://picsum.photos/seed/picsum/2200/100',
 
       // 图片原始size
       imgOriginSize: {
@@ -229,12 +230,9 @@ export default {
 
     /**
      * 自适应填充
-     * 1. 找出图片原始宽度和图片原始高度的最大者和对应哪个属性（宽度 or 高度）
-     * 2. 获取自适应填充百分比
-     *	  a. 如果宽度大，则用容器宽度/图片原始宽度，则可以找出自适应填充百分比
-     *	  b. 如果高度大，则用容器高度/图片原始高度，则可以找出自适应填充百分比
-     * 3. （用图片宽度和高度的1%值x填充的百分比x100）就得到图片渲染尺寸
-     * 4. 根据渲染尺寸调整图片的left、top值，使其水平垂直居中
+     * 1. 找出容器的宽度和高度 与 对应的图片原始宽度和图片原始高度 的比值，哪个小哪个就是填充百分比
+     * 2. （用图片宽度和高度的1%值x填充的百分比x100）就得到图片渲染尺寸
+     * 3. 根据渲染尺寸调整图片的left、top值，使其水平垂直居中
      *    a. （容器宽度-图片渲染宽度）/2 = left
      *    b. （容器高度-图片渲染高度）/2 = top
      */
@@ -244,12 +242,10 @@ export default {
       const { imgPreviewDomWidth, imgPreviewDomHeight } =
         this.imgPreviewDomSize;
 
-      let currentPercent = 0;
-      if (imgOriginWidth >= imgOriginHeight) {
-        currentPercent = imgPreviewDomWidth / imgOriginWidth;
-      } else {
-        currentPercent = imgPreviewDomHeight / imgOriginHeight;
-      }
+      const widthRatio = imgPreviewDomWidth / imgOriginWidth;
+      const heightRatio = imgPreviewDomHeight / imgOriginHeight;
+
+      const currentPercent = Math.min(widthRatio, heightRatio);
 
       if (currentPercent === this.currentPercent) return;
 
@@ -585,12 +581,9 @@ export default {
 
       const { imgOriginWidth, imgOriginHeight } = this.imgOriginSize;
 
-      let currentPercent = 0;
-      if (imgOriginWidth >= imgOriginHeight) {
-        currentPercent = miniMapDomWidth / imgOriginWidth;
-      } else {
-        currentPercent = miniMapDomHeight / imgOriginHeight;
-      }
+      const widthRatio = miniMapDomWidth / imgOriginWidth;
+      const heightRatio = miniMapDomHeight / imgOriginHeight;
+      const currentPercent = Math.min(widthRatio, heightRatio);
 
       const minimapImgRenderWidth = this.calcRenderSize(
         this.imgOriginOnePercentSize.imgOriginOnePercentWidth,
