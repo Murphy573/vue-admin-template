@@ -188,11 +188,12 @@ export default {
       const { imgRenderLeft, imgRenderTop } = this.imgRenderSize;
       const { max: maxTop, min: minTop } = this.genMoveImgTopMaxMin;
       const { max: maxLeft, min: minLeft } = this.genMoveImgLeftMaxMin;
+      // 允许误差0.01
       return (
-        imgRenderLeft < maxLeft ||
-        imgRenderLeft > minLeft ||
-        imgRenderTop < maxTop ||
-        imgRenderTop > minTop
+        maxLeft - imgRenderLeft > 0.01 ||
+        imgRenderLeft - minLeft > 0.01 ||
+        maxTop - imgRenderTop > 0.01 ||
+        imgRenderTop - minTop > 0.01
       );
     },
 
