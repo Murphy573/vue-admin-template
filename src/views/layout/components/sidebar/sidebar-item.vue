@@ -51,7 +51,7 @@ export default {
 }
 
 .sidebar-item-container {
-  /deep/ {
+  ::v-deep {
     // 无嵌套的item
     .el-menu-item {
       color: $--color-menuItemText;

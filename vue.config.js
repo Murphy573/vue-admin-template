@@ -6,8 +6,10 @@ const ENV = process.env;
 const IS_PRODUCTION = ENV.NODE_ENV === 'production';
 const webpackConfigDev = require('./build/webpack.dev.conf');
 const webpackConfigProd = require('./build/webpack.prod.conf');
+const { defineConfig } = require('@vue/cli-service');
 
-module.exports = {
+module.exports = defineConfig({
+  transpileDependencies: false,
   publicPath: ENV.publicPath,
   outputDir: ENV.outputDir,
   // 放置生成的静态资源 (js、css、img、fonts) 的 (相对于 outputDir 的) 目录。
@@ -30,15 +32,15 @@ module.exports = {
     // 移除 preload 插件
     config.plugins.delete('preload');
 
-    config.module
-      .rule('images')
-      .use('url-loader')
-      .loader('url-loader')
-      .tap((options) => {
-        // 修改base64限定值
-        options.limit = 10000;
-        return options;
-      });
+    // config.module
+    //   .rule('images')
+    //   .use('url-loader')
+    //   .loader('url-loader')
+    //   .tap((options) => {
+    //     // 修改base64限定值
+    //     options.limit = 10000;
+    //     return options;
+    //   });
 
     // set svg-sprite-loader
     config.module.rule('svg').exclude.add(resolve('src/icons')).end();
@@ -65,7 +67,7 @@ module.exports = {
       // 给 sass-loader 传递选项
       scss: {
         // 这里只能引入全局变量css文件，其他的通用样式不要引入，不然会产生样式混乱
-        prependData: '@import "@/styles/vars.scss";',
+        additionalData: '@import "@/styles/vars.scss";',
       },
     },
   },
@@ -91,4 +93,4 @@ module.exports = {
   configureWebpack: () => {
     return IS_PRODUCTION ? webpackConfigProd : webpackConfigDev;
   },
-};
+});

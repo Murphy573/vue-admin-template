@@ -29,7 +29,6 @@
 import { mapGetters, mapActions } from 'vuex';
 import SidebarItem from './sidebar-item';
 import SidebarLogo from './logo';
-import CssVars from '@/styles/vars.scss';
 
 export default {
   name: 'Sidebar',
@@ -51,9 +50,6 @@ export default {
     },
     cmpt_hideSidebar() {
       return { hideSidebar: !this.vx_gt_Sidebar.opened };
-    },
-    cmpt_cssVars() {
-      return CssVars;
     },
   },
   methods: {
@@ -98,7 +94,7 @@ export default {
     width: 100% !important;
     background-color: #ffffff;
 
-    /deep/ {
+    ::v-deep {
       .el-scrollbar {
         width: 100%;
         height: 100%;
@@ -127,7 +123,7 @@ export default {
     &.hideSidebar {
       width: $--size-menuCollapseWidth !important;
 
-      /deep/ {
+      ::v-deep {
         .submenu-title-noDropdown {
           padding: 0 !important;
           position: relative;

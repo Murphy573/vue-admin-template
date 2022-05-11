@@ -6,9 +6,8 @@ const ENV = process.env;
 const HappyPack = require('happypack');
 // gzip压缩插件
 const CompressionWebpackPlugin = require('compression-webpack-plugin');
-const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const happyThreadPool = HappyPack.ThreadPool({ size: OS.cpus().length });
-const resolve = dir => path.join(__dirname, dir);
+const resolve = (dir) => path.join(__dirname, dir);
 
 // webpack plugins
 let _plugins = [
@@ -16,15 +15,12 @@ let _plugins = [
     id: 'happybabel',
     loaders: [
       {
-        loader: 'babel-loader?cacheDirectory=true'
-      }
+        loader: 'babel-loader?cacheDirectory=true',
+      },
     ],
     threadPool: happyThreadPool,
-    verbose: true
+    verbose: true,
   }),
-  new ScriptExtHtmlWebpackPlugin({
-    defaultAttribute: 'defer'
-  })
 ];
 
 // 如果执行build命令，添加gzip压缩
@@ -34,7 +30,7 @@ if (ENV.VUE_APP_ENV === 'production' && ENV.IS_GZIP === 'true') {
     deleteOriginalAssets: true,
     threshold: 0,
     minRatio: 1,
-    test: new RegExp('\\.(' + ['js', 'css'].join('|') + ')$')
+    test: new RegExp('\\.(' + ['js', 'css'].join('|') + ')$'),
   });
   _plugins.push(_cwp);
 }
@@ -48,7 +44,7 @@ module.exports = {
   // },
   optimization: {
     runtimeChunk: {
-      name: entrypoint => `runtime~${entrypoint.name}`
+      name: (entrypoint) => `runtime~${entrypoint.name}`,
     },
     splitChunks: {
       chunks: 'async',
@@ -62,26 +58,26 @@ module.exports = {
           test: /[\\/]node_modules[\\/](vue|vue-router|vuex)[\\/]/,
           name: 'chunk-vue',
           chunks: 'all',
-          priority: 40
+          priority: 40,
         },
         // 单独将 ElementUI 拆包
         elementUI: {
           name: 'chunk-elementUI',
           priority: 30,
           chunks: 'all',
-          test: /[\\/]node_modules[\\/]element-ui[\\/]/
+          test: /[\\/]node_modules[\\/]element-ui[\\/]/,
         },
         vendors: {
           name: 'chunk-vendors',
           test: /[\\/]node_modules[\\/]/,
           minChunks: 1,
-          priority: 25
+          priority: 25,
         },
         comps: {
           name: 'chunk-comps',
           test: resolve('../src/components'),
           minChunks: 1,
-          priority: 21
+          priority: 21,
         },
         // libs: {
         //   name: 'chunk-libs',
@@ -94,22 +90,22 @@ module.exports = {
           name: 'chunk-utils',
           test: resolve('../src/utils'),
           minChunks: 1,
-          priority: 19
+          priority: 19,
         },
         apis: {
           name: 'chunk-apis',
           test: resolve('../src/apis'),
           minChunks: 1,
-          priority: 18
+          priority: 18,
         },
         configs: {
           name: 'chunk-configs',
           test: resolve('../src/configs'),
           minChunks: 1,
-          priority: 17
-        }
-      }
-    }
+          priority: 17,
+        },
+      },
+    },
   },
   module: {
     rules: [
@@ -117,9 +113,9 @@ module.exports = {
         test: /\.js$/,
         include: resolve('src'),
         exclude: /node_modules/,
-        loader: 'happypack/loader?id=happybabel'
-      }
-    ]
+        loader: 'happypack/loader?id=happybabel',
+      },
+    ],
   },
-  plugins: _plugins
+  plugins: _plugins,
 };

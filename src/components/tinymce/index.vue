@@ -86,7 +86,7 @@ export default {
 <style lang="scss" scoped>
 .tinymce-container {
   position: relative;
-  /deep/ .mce-fullscreen {
+  ::v-deep .mce-fullscreen {
     z-index: 10000 !important;
   }
 }

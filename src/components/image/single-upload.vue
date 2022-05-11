@@ -223,7 +223,7 @@ export default {
     transition: opacity 0.3s;
 
     i,
-    /deep/ i {
+    ::v-deep i {
       cursor: pointer;
 
       & + i {

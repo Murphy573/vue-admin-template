@@ -6,10 +6,11 @@ module.exports = {
   extends: [
     'plugin:vue/essential',
     'eslint:recommended',
-    '@vue/prettier',
     'plugin:prettier/recommended',
   ],
   rules: {
+    'vue/script-setup-uses-vars': 0,
+    'vue/multi-word-component-names': 0,
     'prettier/prettier': ['error', { singleQuote: true }],
     'no-console': 2,
     'no-debugger': 2,
@@ -23,7 +24,7 @@ module.exports = {
     // 优先使用数组和对象解构
     'prefer-destructuring': 0,
     'no-duplicate-imports': 2,
-    'brace-style': ['error', 'stroustrup', { allowSingleLine: true }],
+    // 'brace-style': ['error', 'stroustrup', { allowSingleLine: true }],
     'vue/html-quotes': ['error', 'double'],
     'prefer-const': 0,
     'getter-return': ['error', { allowImplicit: true }],
