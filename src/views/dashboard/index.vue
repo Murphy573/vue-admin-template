@@ -1,5 +1,9 @@
 <template>
-  <div class="dashboard-editor-container">dashboard</div>
+  <div class="dashboard-editor-container">
+    dashboard
+
+    <img src="https://picsum.photos/200/300" />
+  </div>
 </template>
 
 <script>
@@ -12,6 +16,14 @@ export default {
       orderTotal: 0,
     };
   },
+
+  created() {
+    this.ad();
+  },
+
+  // errorCaptured(...args) {
+  //   debugger;
+  // },
 };
 </script>
 
