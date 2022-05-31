@@ -7,6 +7,8 @@
 
     <Breadcrumb class="breadcrumb-container" />
 
+    <MemoryComp />
+
     <div class="right-menu">
       <el-tooltip content="全屏" effect="dark" placement="bottom">
         <screenfull class="screenfull right-menu-item hover-effect" />
@@ -37,12 +39,14 @@ import { mapGetters, mapActions } from 'vuex';
 import Breadcrumb from './breadcrumb';
 import Hamburger from './hamburger';
 import Screenfull from '@/components/screenfull';
+import MemoryComp from './memoryComp.vue';
 
 export default {
   components: {
     Breadcrumb,
     Hamburger,
     Screenfull,
+    MemoryComp,
   },
   computed: {
     ...mapGetters(['vx_gt_Sidebar', 'vx_gt_GetUserInfo']),
