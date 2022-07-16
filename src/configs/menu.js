@@ -27,7 +27,7 @@ export default [
   {
     name: 'eg',
     meta: {
-      icon: 'chart',
+      icon: 'money',
       title: 'eg',
     },
     children: [
@@ -35,7 +35,6 @@ export default [
         name: 'eg1',
         meta: {
           title: 'eg1',
-          permissions: ['CODE2'],
         },
       },
       {

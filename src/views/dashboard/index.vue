@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-editor-container">
     dashboard
-
+    <!-- {{ abc }} -->
     <img src="https://picsum.photos/200/300" />
   </div>
 </template>
@@ -18,7 +18,7 @@ export default {
   },
 
   created() {
-    this.ad();
+    // this.ad();
   },
 
   // errorCaptured(...args) {

@@ -48,7 +48,7 @@ export function deepCompare(...args) {
   /* eslint-disable */
   let i, l, leftChain, rightChain;
 
-  function compare2Objects (x, y) {
+  function compare2Objects(x, y) {
     let p;
     // 判断NaN和undefined
     if (
@@ -107,8 +107,7 @@ export function deepCompare(...args) {
     for (p in y) {
       if (y.hasOwnProperty(p) !== x.hasOwnProperty(p)) {
         return false;
-      }
-      else if (typeof y[p] !== typeof x[p]) {
+      } else if (typeof y[p] !== typeof x[p]) {
         return false;
       }
     }
@@ -116,8 +115,7 @@ export function deepCompare(...args) {
     for (p in x) {
       if (y.hasOwnProperty(p) !== x.hasOwnProperty(p)) {
         return false;
-      }
-      else if (typeof y[p] !== typeof x[p]) {
+      } else if (typeof y[p] !== typeof x[p]) {
         return false;
       }
 

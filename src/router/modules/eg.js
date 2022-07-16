@@ -20,7 +20,6 @@ export default {
         menuMapper: 'eg1',
         breadcrumb: 'eg1',
         title: 'eg1',
-        permissions: ['CODE2'],
       },
     },
     {
