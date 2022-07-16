@@ -2,6 +2,7 @@ import Dashboard from './modules/dashboard';
 import eg from './modules/eg';
 import Base from './modules/base';
 import imgPreview from './modules/imgPreview';
+import richtext from './modules/richtext';
 
 /**
 * meta : {
@@ -34,6 +35,7 @@ export default [
       Dashboard,
       eg,
       imgPreview,
+      richtext,
     ],
   },
   {

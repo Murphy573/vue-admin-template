@@ -25,6 +25,13 @@ export default [
     },
   },
   {
+    name: 'richtext',
+    meta: {
+      icon: 'dashboard',
+      title: 'richtext',
+    },
+  },
+  {
     name: 'eg',
     meta: {
       icon: 'money',
