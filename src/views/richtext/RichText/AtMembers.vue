@@ -4,6 +4,7 @@
     ref="atMembers"
     class="at-members"
     :style="genDisplayStyle"
+    v-clickoutside:WeiboRichtext
     @click.stop>
     <ul>
       <li
@@ -107,6 +108,10 @@ export default {
           }
 
           this.scrollIntoView();
+        },
+        Tab: () => {
+          event.preventDefault();
+          this.handleSelectItem(this.currentIndex);
         },
         Enter: () => {
           event.preventDefault();
