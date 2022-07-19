@@ -10,7 +10,9 @@
       @on-sync-caret-pos="handleSyncCaretPos"
       @on-trigger="handleTrigger"
       @on-cancel-trigger="handleCancelTrigger" />
-    <el-button @click="handleClickAtBtn">@</el-button>
+    <el-button @click="handleClickAtBtn"
+      >@{{ atMembersOptions.visible }}</el-button
+    >
     <AtMembers
       :visible.sync="atMembersOptions.visible"
       :pos="caretPos"
@@ -92,7 +94,7 @@ export default {
       }
     },
     handleClickAtBtn() {
-      this.richtextEditorCore.handleTriggerByOuter('@');
+      this.richtextEditorCore.handleTrigger('@');
     },
     handleCancelTrigger(identifier) {
       if (identifier === '@') {
