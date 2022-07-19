@@ -14,7 +14,7 @@
 </template>
 
 <script>
-const ZeroWidthSpace = '\u200B';
+const ZeroWidthSpace = '\u200b';
 
 export default {
   name: 'Richtext',
@@ -135,6 +135,7 @@ export default {
 
     // 关键词触发的取消：
     handleCancelTrigger(identifier, isRecordRange = true) {
+      if (!this.isTriggerEditing) return;
       if (identifier) {
         this.replacePlaceholderNode2Annother({
           identifier,
@@ -231,6 +232,7 @@ export default {
       const font = document.createElement('font');
       font.setAttribute('class', 'editor-node');
       font.setAttribute('contenteditable', canEdit ? 'true' : 'false');
+      font.setAttribute('tabindex', -1);
       // 编辑时，content左右插入0宽节点
       const text = `${identifier}${canEdit ? ZeroWidthSpace : ''}${content}${
         canEdit ? ZeroWidthSpace : ''
@@ -252,7 +254,10 @@ export default {
 
       let newTextNode = content;
       if (typeof content === 'string') {
-        newTextNode = document.createTextNode(`${identifier}${content}`);
+        // 消除0宽节点
+        newTextNode = document.createTextNode(
+          `${identifier}${content}`.replace(/[\u200B-\u200D\uFEFF]*/g, '')
+        );
       }
       if (this.richtextEditor.contains(editingNode)) {
         this.richtextEditor.insertBefore(newTextNode, editingNode);
@@ -260,7 +265,7 @@ export default {
       }
       // 是否追加0宽节点
       if (insertEmpty) {
-        const emptyNode = document.createTextNode(ZeroWidthSpace);
+        const emptyNode = document.createTextNode('\xA0');
         this.insertContentOnCaret({ content: emptyNode });
         this.setRichtextEditorFocus();
       }
@@ -330,7 +335,7 @@ export default {
           // } else {
           // }
           // TODO: 未解决有字符需要按下两次回车才会换行
-          const selection = getSelection();
+          const selection = window.getSelection();
           if (selection && selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
             const startOffset = range?.startOffset || 0;
@@ -355,12 +360,13 @@ export default {
         !this.genAllIdetifiers.includes(key) &&
         !this.isTriggerEditing
       ) {
-        // 当输入字符为 @ 时展示浮窗，根据最后一个 @ 后的字符筛选成员列表，无成员时浮窗隐藏
         // 当最后的节点为高亮节点时，会有指针位置紊乱的问题，在生成高亮节点时通过尾部加上空格规避，删除空格时连带高亮节点一起删除
         if (!this.richtextEditor) return;
         // 输入空格再删除时有可能会有空节点遗留，判断时过滤掉textContent为空的节点
         const childNodes = [...this.richtextEditor.childNodes].filter(
-          (item) => !!item.textContent
+          (item) => {
+            return !!item.textContent;
+          }
         );
         if (childNodes?.length) {
           const total = childNodes.length;
@@ -603,7 +609,8 @@ export default {
         sel.removeAllRanges();
         sel.addRange(range);
       }
-      this.lastEditRange = range;
+
+      this.setLastRangeRecord();
     },
 
     // h5 dataset设置和获取值
