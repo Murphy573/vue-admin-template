@@ -40,7 +40,7 @@ export default {
     },
     maxlength: {
       type: Number,
-      default: Infinity,
+      default: 1000,
     },
   },
 
@@ -76,7 +76,7 @@ export default {
   methods: {
     // 选择@人员
     handleMemberSelect(member, trigger) {
-      this.richtextEditorCore.handleConfirmTrigger({
+      this.richtextEditorCore.confirmSelect({
         data: member,
         trigger,
         contentKey: 'name',
@@ -86,7 +86,7 @@ export default {
     // 取消选择@人员
     handleCancelMemberSelect() {
       this.atMembersOptions.visible = false;
-      this.richtextEditorCore.handleCancelTrigger('@', true);
+      this.richtextEditorCore.cancelSelect('@', true);
     },
     handleTrigger(identifier) {
       if (identifier === '@') {
@@ -94,7 +94,7 @@ export default {
       }
     },
     handleClickAtBtn() {
-      this.richtextEditorCore.handleTrigger('@');
+      this.richtextEditorCore.openSelect('@');
     },
     handleCancelTrigger(identifier) {
       if (identifier === '@') {

@@ -1,16 +1,24 @@
 <template>
-  <div
-    ref="richtextRef"
-    class="my-richtext"
-    :placeholder="placeholder"
-    tabindex="0"
-    spellcheck="true"
-    contenteditable="true"
-    @focus="handleFocus"
-    @blur="handleBlur"
-    @keydown="handleKeydown"
-    @keyup="handleKeyup"
-    @click="handleClick"></div>
+  <div>
+    <div
+      ref="richtextRef"
+      class="my-richtext"
+      :placeholder="placeholder"
+      tabindex="0"
+      spellcheck="true"
+      contenteditable="true"
+      @focus="handleFocus"
+      @blur="handleBlur"
+      @keydown="handleKeydown"
+      @keyup="handleKeyup"
+      @click="handleClick"
+      @compositionstart="handleCompositionStart"
+      @compositionend="handleCompositionEnd"
+      @paste="handlePaste"></div>
+    maxlength:{{ maxlength }},contentLength:{{
+      richtextEditorOptions.contentLength
+    }},isExceedMaxlength:{{ isExceedMaxlength }}
+  </div>
 </template>
 
 <script>
@@ -26,7 +34,7 @@ export default {
     },
     maxlength: {
       type: Number,
-      default: Infinity,
+      default: Number.MAX_SAFE_INTEGER,
     },
     // 触发关键字
     identifierOptions: {
@@ -45,6 +53,15 @@ export default {
         filterTextPattern: null,
         // 当前正在触发哪个关键按键
         currentIndentifier: '',
+        // 输入的内容长度
+        contentLength: 0,
+      },
+      // 中文输入选项
+      compositionOptions: {
+        // 是否正在输入
+        isInputing: false,
+        // 中文确认后的长度
+        contentLength: 0,
       },
       // 记录上一次的选区位置
       lastRangeRecord: null,
@@ -66,7 +83,7 @@ export default {
 
   computed: {
     isExceedMaxlength() {
-      return false;
+      return this.richtextEditorOptions.contentLength >= this.maxlength;
     },
     genAllIdentifierOptionsMap() {
       const map = {};
@@ -87,17 +104,9 @@ export default {
     },
   },
 
-  mounted() {
-    this.$nextTick(() => {
-      this.richtextEditor = this.$refs.richtextRef || null;
-
-      if (!this.richtextEditor) return;
-    });
-  },
-
   methods: {
     // 关键词触发的选中：外部调用
-    handleConfirmTrigger({
+    confirmSelect({
       identifier,
       data,
       contentKey,
@@ -107,7 +116,7 @@ export default {
       const currentIndentifierOption =
         this.genAllIdentifierOptionsMap[identifier];
       if (!currentIndentifierOption) {
-        this.handleCancelTrigger(this.richtextEditorOptions.currentIndentifier);
+        this.cancelSelect(this.richtextEditorOptions.currentIndentifier);
         return;
       }
 
@@ -131,10 +140,12 @@ export default {
       });
       this.resetRichtextEditorOptions();
       this.setLastRangeRecord();
+      // 转换输入内容
+      this.genEditorInputContent();
     },
 
     // 关键词触发的取消：
-    handleCancelTrigger(identifier, isRecordRange = true) {
+    cancelSelect(identifier, isRecordRange = true) {
       if (!this.isTriggerEditing) return;
       if (identifier) {
         this.replacePlaceholderNode2Annother({
@@ -148,15 +159,14 @@ export default {
 
       !!identifier && this.$emit('on-cancel-trigger', identifier);
     },
-    // 外部主动触发
-    handleTrigger(identifier) {
-      // BUGFIX: 解决连续点击关键按钮出现连续的node
+
+    // 主动触发选择
+    openSelect(identifier) {
       if (this.isTriggerEditing) {
-        this.handleCancelTrigger(
-          this.richtextEditorOptions.currentIndentifier,
-          false
-        );
+        this.cancelSelect(this.richtextEditorOptions.currentIndentifier, false);
       }
+
+      if (this.isExceedMaxlength) return;
       if (!this.genAllIdentifierOptionsMap[identifier]) return;
 
       this.setRichtextEditorFocus();
@@ -182,12 +192,12 @@ export default {
         this.setLastRangeRecord();
       }
       // 设置编辑器记录数据
-      this.richtextEditorOptions = {
+      Object.assign(this.richtextEditorOptions, {
         editingNode: Object.freeze(placeholderNode),
         currentIndentifier: identifier,
         filterTextPattern: new RegExp(`${identifier}([^${identifier}\\s]*)$`),
         filterText: '',
-      };
+      });
       this.$nextTick(() => {
         this.syncCaretPos();
         this.$emit('on-trigger', this.richtextEditorOptions.currentIndentifier);
@@ -202,6 +212,8 @@ export default {
       if (match && match.length === 2) {
         this.richtextEditorOptions.filterText = match[1];
         this.$emit('on-search', match[1]);
+      } else {
+        this.$emit('on-search', '');
       }
     },
 
@@ -212,9 +224,13 @@ export default {
         editingNode: null,
         filterText: '',
         filterTextPattern: null,
+        focus: this.richtextEditorOptions.isFocus,
+        contentLength: 0,
       };
+      this.setFilterText('');
     },
 
+    // 主动获得编辑器焦点
     setRichtextEditorFocus() {
       this.richtextEditor?.focus();
       this.richtextEditorOptions.isFocus = true;
@@ -274,17 +290,20 @@ export default {
     // 当点击编辑器时
     handleClick(event) {
       const target = event.target;
-      // 如果存在可编辑节点，则始终将光标放在可编辑节点最后
+      // 如果存在可编辑节点，则始终将光标放在可编辑节点最后一个0宽字符前面：保证删除时判断正常取消触发
       if (this.isTriggerEditing) {
         const sel = window.getSelection();
-        const range = sel?.getRangeAt(0);
-        range?.setStartAfter(
-          this.richtextEditorOptions.editingNode.childNodes[0]
-        );
+        const textNode = this.richtextEditorOptions.editingNode.childNodes[0];
+        const range = document.createRange();
+        range.setStart(textNode, textNode?.textContent.length - 1);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
       } else {
-        // 当点击的不可编辑节点，则将光标移动到该节点之后
+        // 当点击的不可编辑节点
         if (target.getAttribute('contenteditable') === 'false') {
-          let nextEle = target.nextSibling;
+          // 因为手动插入了空节点，所以取下下一个
+          let nextEle = target.nextSibling.nextSibling;
           const newTextNode = document.createTextNode('');
           if (!nextEle) {
             this.richtextEditor?.appendChild(newTextNode);
@@ -294,7 +313,7 @@ export default {
 
           const sel = window.getSelection();
           const range = document.createRange();
-          range.setStartAfter(newTextNode);
+          range.setStartBefore(newTextNode);
           range.collapse(true);
           sel.removeAllRanges();
           sel.addRange(range);
@@ -309,15 +328,15 @@ export default {
       const { key } = event;
       // 当触发了关键字
       if (this.isTriggerEditing) {
+        // 中文输入不走下面的逻辑
+        if (this.compositionOptions.isInputing) return;
         // 按下这几个键时，禁用默认行为
         if (this.preventDefaultKeysOnPanelVisible.includes(key)) {
           event.preventDefault();
         } else {
           // 当按下配置的关键字按键或者空格，完成本次输入
           if (this.genAllIdetifiers.includes(key) || key === ' ') {
-            this.handleCancelTrigger(
-              this.richtextEditorOptions.currentIndentifier
-            );
+            this.cancelSelect(this.richtextEditorOptions.currentIndentifier);
           }
         }
       } else {
@@ -341,9 +360,11 @@ export default {
             const startOffset = range?.startOffset || 0;
             const endOffset = range?.endOffset || 0;
             this.pasteHtml('<br/>', startOffset, endOffset);
-            // this.caculateSrcollHeight();
+            this.caculateSrcollHeight();
           }
         }
+        // 转换输入内容
+        this.genEditorInputContent();
       }
     },
 
@@ -375,8 +396,8 @@ export default {
             this.richtextEditor.removeChild(lastNode);
           }
         }
-        // TODO: 计算内容
-        // this.getEditorContent();
+        // 转换输入内容
+        this.genEditorInputContent();
         return;
       } else if (this.genAllIdetifiers.includes(key)) {
         if (this.isExceedMaxlength) return;
@@ -388,12 +409,12 @@ export default {
           lastRange.endOffset
         );
         // 触发关键字选择
-        this.handleTrigger(key);
+        this.openSelect(key);
         const range = lastRange.cloneRange();
         range.deleteContents();
         // 设置光标到编辑节点
         range.insertNode(this.richtextEditorOptions.editingNode);
-        // 3是指关键字节点里的0宽节点中间
+        // 2是指关键字节点里的0宽节点中间
         // text节点
         range.setStart(this.richtextEditorOptions.editingNode.childNodes[0], 2);
         range.collapse(true);
@@ -402,6 +423,7 @@ export default {
         // 记录节点
         this.setLastRangeRecord();
       } else if (this.isTriggerEditing) {
+        if (this.compositionOptions.isInputing) return;
         // 如果是@编辑状态，则删除分隔符时删除整个编辑区域
 
         if (key === 'Backspace') {
@@ -411,13 +433,12 @@ export default {
           const lastSperator =
             anchorNode?.textContent?.lastIndexOf(ZeroWidthSpace) || 0;
           if (firstSperator >= lastSperator) {
-            this.handleCancelTrigger(
-              this.richtextEditorOptions.currentIndentifier
-            );
+            this.cancelSelect(this.richtextEditorOptions.currentIndentifier);
             return;
           }
         }
 
+        // 非中文输入
         // 左右移动光标、ESC退出@编辑模式
         if (
           [
@@ -426,9 +447,7 @@ export default {
             //  'ArrowUp', 'ArrowDown' // 输入法上下选择冲突
           ].indexOf(key) >= 0
         ) {
-          this.handleCancelTrigger(
-            this.richtextEditorOptions.currentIndentifier
-          );
+          this.cancelSelect(this.richtextEditorOptions.currentIndentifier);
           return;
         }
 
@@ -437,28 +456,144 @@ export default {
       }
     },
 
+    handleCompositionStart() {
+      this.compositionOptions.isInputing = true;
+      if (!this.isTriggerEditing) {
+        this.compositionOptions.contentLength =
+          this.richtextEditorOptions.contentLength;
+      }
+    },
+
+    // event:CompositionEvent
+    handleCompositionEnd(e) {
+      let inputData = e.data || '';
+      const compositionLength = this.compositionOptions.contentLength || 0;
+      if (compositionLength + inputData.length > this.maxlength) {
+        let newValueStr = inputData.slice(
+          0,
+          this.maxlength - compositionLength
+        );
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const startOffset = range?.startOffset || 0;
+          this.pasteHtml(
+            newValueStr,
+            startOffset - inputData.length,
+            startOffset
+          );
+        }
+      }
+      this.compositionOptions.isInputing = false;
+      this.compositionOptions.contentLength = 0;
+    },
+
+    // 处理粘贴事件
+    handlePaste(e) {
+      e.preventDefault();
+      let paste = (e.clipboardData || window.clipboardData).getData('text');
+      const {
+        compositionOptions: { contentLength },
+        maxlength,
+      } = this;
+      if (contentLength >= maxlength) {
+        return false;
+      } else if (contentLength + paste.length >= maxlength) {
+        paste = paste.slice(0, maxlength - contentLength);
+      }
+      const selection = window.getSelection();
+      if (!selection?.rangeCount) return false;
+      const range = selection.getRangeAt(0);
+      const startOffset = range?.startOffset || 0;
+      const endOffset = range?.endOffset || 0;
+      this.pasteHtml(paste, startOffset, endOffset);
+      this.caculateSrcollHeight();
+      this.genEditorInputContent();
+    },
+
+    genEditorInputContent() {
+      if (!this.richtextEditor) return;
+
+      const texts = [];
+      let contentLength = 0;
+      let hasIdentifierNode = false;
+
+      const childNodes = [...this.richtextEditor.childNodes].filter((item) => {
+        return item.textContent || item.nodeName === 'BR';
+      });
+
+      const content = childNodes.map((item) => {
+        if (item && item.nodeName === '#text') {
+          texts.push(item.textContent || '');
+          contentLength += item.textContent?.length || 0;
+          return {
+            type: 'text',
+            content: item?.textContent?.trim() || '',
+          };
+        } else if (item.nodeName === 'BR') {
+          texts.push('\n');
+          contentLength += 1;
+          return {
+            type: 'text',
+            content: '\n',
+          };
+        } else {
+          hasIdentifierNode = true;
+          const identifier = this.getElementDataset(item, 'identifier');
+          const identifierDataInfo = JSON.parse(
+            this.getElementDataset(
+              item,
+              this.genAllIdentifierOptionsMap[identifier].datasetKey
+            )
+          );
+
+          return {
+            type: identifier,
+            content: identifierDataInfo,
+          };
+        }
+      });
+
+      if (contentLength > this.maxlength) {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const startOffset = range?.startOffset || 0;
+          this.deleteHtml(
+            startOffset - contentLength + this.maxlength,
+            startOffset
+          );
+        }
+        this.richtextEditorOptions.contentLength = this.maxlength;
+      } else {
+        this.richtextEditorOptions.contentLength = contentLength;
+      }
+
+      if (!hasIdentifierNode) {
+        this.$emit('inputchange', texts.join('').trim());
+      } else {
+        this.$emit('inputchange', content);
+      }
+    },
+
     handleFocus() {
       // eslint-disable-next-line no-console
-      console.log('handleFocus');
+      // console.log('handleFocus');
     },
 
     // 丢失焦点
     handleBlur() {
-      if (this.isTriggerEditing) return;
       this.richtextEditorOptions.isFocus = false;
     },
 
-    // 点击容器外
+    // 点击容器外：是指包含输入节点、快捷插入节点等之外的节点
     handleClickoutside() {
       this.richtextEditorOptions.isFocus = false;
-      this.handleCancelTrigger(
-        this.richtextEditorOptions.currentIndentifier,
-        false
-      );
+      this.cancelSelect(this.richtextEditorOptions.currentIndentifier, false);
       // 将光标移动到最后面
-      // this.moveCaret2StartOrEnd('end');
-      // this.setLastRangeRecord();
-      // this.richtextEditor?.blur();
+      this.moveCaret2StartOrEnd('end');
+      this.setLastRangeRecord();
+      this.richtextEditor?.blur();
     },
 
     // 记录上一次的选区位置
@@ -613,6 +748,37 @@ export default {
       this.setLastRangeRecord();
     },
 
+    // 计算滚动高度
+    caculateSrcollHeight() {
+      const scrollEle = this.richtextEditor;
+      if (!scrollEle) {
+        return;
+      }
+      const scrollRect = scrollEle.getBoundingClientRect();
+      const selection = window.getSelection();
+      if (selection && this.lastRangeRecord) {
+        // 清除所有选区
+        selection.removeAllRanges();
+        // 添加最后光标还原之前的状态
+        selection.addRange(this.lastRangeRecord);
+      }
+      if (selection && selection.rangeCount > 0) {
+        const inputRect = this.getCaretCoordsOfDocument();
+        if (scrollRect && inputRect) {
+          const top = scrollRect.y;
+          const bottom = scrollRect.y + scrollRect.height;
+          if (inputRect.y + 20 <= bottom && inputRect.y >= top) {
+            return;
+          } else if (inputRect.y < top) {
+            scrollEle.scrollTop = scrollEle.scrollTop - (top - inputRect.y);
+          } else if (inputRect.y + 20 > bottom) {
+            scrollEle.scrollTop =
+              scrollEle.scrollTop + (inputRect.y - bottom + 20);
+          }
+        }
+      }
+    },
+
     // h5 dataset设置和获取值
     setElementDataset(target, name, value) {
       if (target.dataset) {
@@ -628,6 +794,14 @@ export default {
 
       return target.getAttribute(`data-${name}`);
     },
+  },
+
+  mounted() {
+    this.$nextTick(() => {
+      this.richtextEditor = this.$refs.richtextRef || null;
+
+      if (!this.richtextEditor) return;
+    });
   },
 };
 </script>
@@ -647,6 +821,8 @@ export default {
   border: 1px solid red;
   background: rgb(176, 185, 149);
   padding: 5px;
+  overflow-y: auto;
+  overflow-x: hidden;
 
   &:empty:before {
     content: attr(placeholder);

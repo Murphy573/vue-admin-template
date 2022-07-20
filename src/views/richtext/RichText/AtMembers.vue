@@ -50,6 +50,7 @@ export default {
       }),
       filterredMembers: [],
       currentIndex: 0,
+      isCompositionning: false,
     };
   },
 
@@ -85,7 +86,7 @@ export default {
     },
 
     handleGlobalKeydown(event) {
-      if (!this.visible) return;
+      if (!this.visible || this.isCompositionning) return;
       const { key } = event;
 
       const keyFuncMap = {
@@ -132,8 +133,10 @@ export default {
     },
 
     handleSelectItem(index) {
+      const item = this.filterredMembers[index];
+      if (!item) return;
       this.syncVisible(false);
-      this.$emit('on-select', this.filterredMembers[index], 'click');
+      this.$emit('on-select', this.filterredMembers[index]);
     },
 
     scrollIntoView() {
@@ -170,14 +173,29 @@ export default {
         }
       });
     },
+
+    handleCompositionStart() {
+      this.isCompositionning = true;
+    },
+
+    handleCompositionEnd() {
+      this.isCompositionning = false;
+    },
   },
 
   mounted() {
     document.addEventListener('keydown', this.handleGlobalKeydown);
+    document.addEventListener('compositionstart', this.handleCompositionStart);
+    document.addEventListener('compositionend', this.handleCompositionEnd);
   },
 
   beforeDestory() {
     document.removeEventListener('keydown', this.handleGlobalKeydown);
+    document.removeEventListener(
+      'compositionstart',
+      this.handleCompositionStart
+    );
+    document.removeEventListener('compositionend', this.handleCompositionEnd);
   },
 };
 </script>
