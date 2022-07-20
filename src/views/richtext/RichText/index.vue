@@ -11,15 +11,28 @@
       @on-sync-caret-pos="handleSyncCaretPos"
       @on-open-identifier-select="handleTrigger"
       @on-cancel-identifier-select="handleCancelTrigger" />
-    <el-button @click="handleClickAtBtn"
-      >@{{ atMembersOptions.visible }}</el-button
-    >
+
+    <el-row>
+      <el-button @click="handleClickAtBtn"
+        >@{{ atMembersOptions.visible }}</el-button
+      >
+      <el-button @click="handleClickSuperTopicBtn"
+        >#{{ superTopicsOptions.visible }}</el-button
+      >
+    </el-row>
+
     <AtMembers
       :visible.sync="atMembersOptions.visible"
       :pos="caretPos"
       :searchKeyword="richtextSearchkeyword"
       @on-cancel-select="handleCancelMemberSelect"
       @on-select="handleMemberSelect" />
+    <SuperTopics
+      :visible.sync="superTopicsOptions.visible"
+      :pos="caretPos"
+      :searchKeyword="richtextSearchkeyword"
+      @on-cancel-select="handleCancelSuperTopicSelect"
+      @on-select="handleSuperTopicSelect" />
 
     richtextSearchkeyword:{{ richtextSearchkeyword }}
   </div>
@@ -28,6 +41,7 @@
 <script>
 import AtMembers from './AtMembers.vue';
 import RichtextEditorCore from './RichtextEditorCore.vue';
+import SuperTopics from './SuperTopics.vue';
 /**
  * TODO:
  * 1、
@@ -35,7 +49,7 @@ import RichtextEditorCore from './RichtextEditorCore.vue';
 export default {
   name: 'Richtext',
 
-  components: { AtMembers, RichtextEditorCore },
+  components: { AtMembers, SuperTopics, RichtextEditorCore },
 
   props: {
     placeholder: {
@@ -66,6 +80,10 @@ export default {
           key: '@',
           datasetKey: 'memberInfo',
         },
+        {
+          key: '#',
+          datasetKey: 'topicInfo',
+        },
       ],
     };
   },
@@ -93,9 +111,26 @@ export default {
       this.atMembersOptions.visible = false;
       this.richtextEditorCore.cancelIdentifierSelect('@', true);
     },
+    // 选择#
+    handleSuperTopicSelect(topic, trigger) {
+      this.richtextEditorCore.confirmIdentifierSelect({
+        data: topic,
+        trigger,
+        contentKey: 'name',
+        identifier: '#',
+        identifierAlsoEnd: true,
+      });
+    },
+    // 取消选择#
+    handleCancelSuperTopicSelect() {
+      this.superTopicsOptions.visible = false;
+      this.richtextEditorCore.cancelIdentifierSelect('#', true);
+    },
     handleTrigger(identifier) {
       if (identifier === '@') {
         this.atMembersOptions.visible = true;
+      } else if (identifier === '#') {
+        this.superTopicsOptions.visible = true;
       }
     },
     handleSearch(keyword) {
@@ -104,9 +139,14 @@ export default {
     handleClickAtBtn() {
       this.richtextEditorCore.openIdentifierSelect('@');
     },
+    handleClickSuperTopicBtn() {
+      this.richtextEditorCore.openIdentifierSelect('#');
+    },
     handleCancelTrigger(identifier) {
       if (identifier === '@') {
         this.atMembersOptions.visible = false;
+      } else if (identifier === '#') {
+        this.superTopicsOptions.visible = false;
       }
     },
     // 点击容器外
