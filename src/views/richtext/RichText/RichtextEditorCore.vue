@@ -36,6 +36,11 @@ export default {
       type: Number,
       default: Number.MAX_SAFE_INTEGER,
     },
+    // 是否可以换行
+    isCanLF: {
+      type: Boolean,
+      default: true,
+    },
     // 触发关键字
     identifierOptions: {
       type: Array,
@@ -56,11 +61,11 @@ export default {
         // 输入的内容长度
         contentLength: 0,
       },
-      // 中文输入选项
+      // 输入法输入选项
       compositionOptions: {
         // 是否正在输入
         isInputing: false,
-        // 中文确认后的长度
+        // 输入法确认后的长度
         contentLength: 0,
       },
       // 记录上一次的选区位置
@@ -106,17 +111,18 @@ export default {
 
   methods: {
     // 关键词触发的选中：外部调用
-    confirmSelect({
+    confirmIdentifierSelect({
       identifier,
       data,
       contentKey,
       identifierAlsoEnd,
-      trigger,
     }) {
       const currentIndentifierOption =
         this.genAllIdentifierOptionsMap[identifier];
       if (!currentIndentifierOption) {
-        this.cancelSelect(this.richtextEditorOptions.currentIndentifier);
+        this.cancelIdentifierSelect(
+          this.richtextEditorOptions.currentIndentifier
+        );
         return;
       }
 
@@ -145,7 +151,7 @@ export default {
     },
 
     // 关键词触发的取消：
-    cancelSelect(identifier, isRecordRange = true) {
+    cancelIdentifierSelect(identifier, isRecordRange = true) {
       if (!this.isTriggerEditing) return;
       if (identifier) {
         this.replacePlaceholderNode2Annother({
@@ -157,13 +163,16 @@ export default {
       isRecordRange && this.setLastRangeRecord();
       this.resetRichtextEditorOptions();
 
-      !!identifier && this.$emit('on-cancel-trigger', identifier);
+      !!identifier && this.$emit('on-cancel-identifier-select', identifier);
     },
 
     // 主动触发选择
-    openSelect(identifier) {
+    openIdentifierSelect(identifier) {
       if (this.isTriggerEditing) {
-        this.cancelSelect(this.richtextEditorOptions.currentIndentifier, false);
+        this.cancelIdentifierSelect(
+          this.richtextEditorOptions.currentIndentifier,
+          false
+        );
       }
 
       if (this.isExceedMaxlength) return;
@@ -200,20 +209,24 @@ export default {
       });
       this.$nextTick(() => {
         this.syncCaretPos();
-        this.$emit('on-trigger', this.richtextEditorOptions.currentIndentifier);
+        this.$emit(
+          'on-open-identifier-select',
+          this.richtextEditorOptions.currentIndentifier
+        );
       });
     },
 
     // 设置搜索关键词
     setFilterText(text) {
+      text = this.clearZeroWidthSpace(text);
       const match = this.richtextEditorOptions.filterTextPattern?.exec?.(
         text || ''
       );
       if (match && match.length === 2) {
         this.richtextEditorOptions.filterText = match[1];
-        this.$emit('on-search', match[1]);
+        this.$emit('on-identifier-search', match[1]);
       } else {
-        this.$emit('on-search', '');
+        this.$emit('on-identifier-search', '');
       }
     },
 
@@ -253,7 +266,7 @@ export default {
       const text = `${identifier}${canEdit ? ZeroWidthSpace : ''}${content}${
         canEdit ? ZeroWidthSpace : ''
       }${identifierAlsoEnd ? identifier : ''}`;
-      const textNode = document.createTextNode(canEdit ? text : ` ${text} `);
+      const textNode = document.createTextNode(canEdit ? text : ` ${text}`);
       font.appendChild(textNode);
 
       return font;
@@ -272,7 +285,7 @@ export default {
       if (typeof content === 'string') {
         // 消除0宽节点
         newTextNode = document.createTextNode(
-          `${identifier}${content}`.replace(/[\u200B-\u200D\uFEFF]*/g, '')
+          this.clearZeroWidthSpace(`${identifier}${content}`)
         );
       }
       if (this.richtextEditor.contains(editingNode)) {
@@ -328,7 +341,7 @@ export default {
       const { key } = event;
       // 当触发了关键字
       if (this.isTriggerEditing) {
-        // 中文输入不走下面的逻辑
+        // 输入法输入不走下面的逻辑
         if (this.compositionOptions.isInputing) return;
         // 按下这几个键时，禁用默认行为
         if (this.preventDefaultKeysOnPanelVisible.includes(key)) {
@@ -336,7 +349,9 @@ export default {
         } else {
           // 当按下配置的关键字按键或者空格，完成本次输入
           if (this.genAllIdetifiers.includes(key) || key === ' ') {
-            this.cancelSelect(this.richtextEditorOptions.currentIndentifier);
+            this.cancelIdentifierSelect(
+              this.richtextEditorOptions.currentIndentifier
+            );
           }
         }
       } else {
@@ -353,6 +368,7 @@ export default {
           //   }
           // } else {
           // }
+          if (!this.isCanLF) return;
           // TODO: 未解决有字符需要按下两次回车才会换行
           const selection = window.getSelection();
           if (selection && selection.rangeCount > 0) {
@@ -409,7 +425,7 @@ export default {
           lastRange.endOffset
         );
         // 触发关键字选择
-        this.openSelect(key);
+        this.openIdentifierSelect(key);
         const range = lastRange.cloneRange();
         range.deleteContents();
         // 设置光标到编辑节点
@@ -423,9 +439,10 @@ export default {
         // 记录节点
         this.setLastRangeRecord();
       } else if (this.isTriggerEditing) {
+        // 输入法输入中不走下面的逻辑
         if (this.compositionOptions.isInputing) return;
-        // 如果是@编辑状态，则删除分隔符时删除整个编辑区域
 
+        // 如果是@编辑状态，则删除分隔符时删除整个编辑区域
         if (key === 'Backspace') {
           const anchorNode = selection.anchorNode;
           const firstSperator =
@@ -433,21 +450,18 @@ export default {
           const lastSperator =
             anchorNode?.textContent?.lastIndexOf(ZeroWidthSpace) || 0;
           if (firstSperator >= lastSperator) {
-            this.cancelSelect(this.richtextEditorOptions.currentIndentifier);
+            this.cancelIdentifierSelect(
+              this.richtextEditorOptions.currentIndentifier
+            );
             return;
           }
         }
 
-        // 非中文输入
-        // 左右移动光标、ESC退出@编辑模式
-        if (
-          [
-            'ArrowLeft',
-            'ArrowRight',
-            //  'ArrowUp', 'ArrowDown' // 输入法上下选择冲突
-          ].indexOf(key) >= 0
-        ) {
-          this.cancelSelect(this.richtextEditorOptions.currentIndentifier);
+        // 非输入法输入: 左右移动光标、ESC退出@编辑模式
+        if (['ArrowLeft', 'ArrowRight'].indexOf(key) >= 0) {
+          this.cancelIdentifierSelect(
+            this.richtextEditorOptions.currentIndentifier
+          );
           return;
         }
 
@@ -456,6 +470,7 @@ export default {
       }
     },
 
+    // 输入法输入开始
     handleCompositionStart() {
       this.compositionOptions.isInputing = true;
       if (!this.isTriggerEditing) {
@@ -464,7 +479,7 @@ export default {
       }
     },
 
-    // event:CompositionEvent
+    // 输入法输入结束，event:CompositionEvent
     handleCompositionEnd(e) {
       let inputData = e.data || '';
       const compositionLength = this.compositionOptions.contentLength || 0;
@@ -508,9 +523,11 @@ export default {
       const endOffset = range?.endOffset || 0;
       this.pasteHtml(paste, startOffset, endOffset);
       this.caculateSrcollHeight();
+      // 转换输入内容
       this.genEditorInputContent();
     },
 
+    // 转换输入内容
     genEditorInputContent() {
       if (!this.richtextEditor) return;
 
@@ -522,37 +539,47 @@ export default {
         return item.textContent || item.nodeName === 'BR';
       });
 
-      const content = childNodes.map((item) => {
-        if (item && item.nodeName === '#text') {
-          texts.push(item.textContent || '');
-          contentLength += item.textContent?.length || 0;
-          return {
-            type: 'text',
-            content: item?.textContent?.trim() || '',
-          };
-        } else if (item.nodeName === 'BR') {
-          texts.push('\n');
-          contentLength += 1;
-          return {
-            type: 'text',
-            content: '\n',
-          };
-        } else {
-          hasIdentifierNode = true;
-          const identifier = this.getElementDataset(item, 'identifier');
-          const identifierDataInfo = JSON.parse(
-            this.getElementDataset(
-              item,
-              this.genAllIdentifierOptionsMap[identifier].datasetKey
-            )
-          );
-
-          return {
-            type: identifier,
-            content: identifierDataInfo,
-          };
-        }
-      });
+      const content = childNodes
+        .map((item) => {
+          if (item && item.nodeName === '#text') {
+            const textContent = this.clearZeroWidthSpace(
+              item?.textContent?.trim() || ''
+            );
+            texts.push(textContent);
+            contentLength += textContent.length || 0;
+            return {
+              type: 'text',
+              content: textContent,
+            };
+          } else if (item.nodeName === 'BR') {
+            texts.push('\n');
+            contentLength += 1;
+            return {
+              type: 'text',
+              content: '\n',
+            };
+          } else {
+            const identifier = this.getElementDataset(item, 'identifier');
+            if (identifier) {
+              hasIdentifierNode = true;
+              const identifierDataInfo = JSON.parse(
+                this.getElementDataset(
+                  item,
+                  this.genAllIdentifierOptionsMap[identifier].datasetKey
+                )
+              );
+              contentLength += 1;
+              return {
+                type: identifier,
+                content: identifierDataInfo,
+              };
+            }
+            return { type: 'unknown', content: 'unknown' };
+          }
+        })
+        .filter((item) => {
+          return item.type !== 'unknown';
+        });
 
       if (contentLength > this.maxlength) {
         const selection = window.getSelection();
@@ -589,7 +616,11 @@ export default {
     // 点击容器外：是指包含输入节点、快捷插入节点等之外的节点
     handleClickoutside() {
       this.richtextEditorOptions.isFocus = false;
-      this.cancelSelect(this.richtextEditorOptions.currentIndentifier, false);
+      this.cancelIdentifierSelect(
+        this.richtextEditorOptions.currentIndentifier,
+        false
+      );
+      this.genEditorInputContent();
       // 将光标移动到最后面
       this.moveCaret2StartOrEnd('end');
       this.setLastRangeRecord();
@@ -793,6 +824,10 @@ export default {
       }
 
       return target.getAttribute(`data-${name}`);
+    },
+    // 清除0宽节点
+    clearZeroWidthSpace(str) {
+      return str.replace(/[\u200B-\u200D\uFEFF]*/g, '');
     },
   },
 

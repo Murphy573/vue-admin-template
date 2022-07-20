@@ -66,10 +66,11 @@ export default {
 
   watch: {
     searchKeyword: {
-      handler() {
+      handler(newVal) {
         this.currentIndex = 0;
+
         this.filterredMembers = this.members.filter((m) => {
-          return m.name.includes(this.searchKeyword);
+          return m.name.includes(newVal?.trim() || '');
         });
       },
       immediate: true,

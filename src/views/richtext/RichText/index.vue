@@ -7,17 +7,21 @@
       :identifierOptions="identifierOptions"
       :placeholder="placeholder"
       :maxlength="maxlength"
+      @on-identifier-search="handleSearch"
       @on-sync-caret-pos="handleSyncCaretPos"
-      @on-trigger="handleTrigger"
-      @on-cancel-trigger="handleCancelTrigger" />
+      @on-open-identifier-select="handleTrigger"
+      @on-cancel-identifier-select="handleCancelTrigger" />
     <el-button @click="handleClickAtBtn"
       >@{{ atMembersOptions.visible }}</el-button
     >
     <AtMembers
       :visible.sync="atMembersOptions.visible"
       :pos="caretPos"
+      :searchKeyword="richtextSearchkeyword"
       @on-cancel-select="handleCancelMemberSelect"
       @on-select="handleMemberSelect" />
+
+    richtextSearchkeyword:{{ richtextSearchkeyword }}
   </div>
 </template>
 
@@ -47,6 +51,7 @@ export default {
   data() {
     return {
       richtextEditorCore: null,
+      richtextSearchkeyword: '',
       // @ @人员
       atMembersOptions: {
         visible: false,
@@ -76,7 +81,7 @@ export default {
   methods: {
     // 选择@人员
     handleMemberSelect(member, trigger) {
-      this.richtextEditorCore.confirmSelect({
+      this.richtextEditorCore.confirmIdentifierSelect({
         data: member,
         trigger,
         contentKey: 'name',
@@ -86,15 +91,18 @@ export default {
     // 取消选择@人员
     handleCancelMemberSelect() {
       this.atMembersOptions.visible = false;
-      this.richtextEditorCore.cancelSelect('@', true);
+      this.richtextEditorCore.cancelIdentifierSelect('@', true);
     },
     handleTrigger(identifier) {
       if (identifier === '@') {
         this.atMembersOptions.visible = true;
       }
     },
+    handleSearch(keyword) {
+      this.richtextSearchkeyword = keyword;
+    },
     handleClickAtBtn() {
-      this.richtextEditorCore.openSelect('@');
+      this.richtextEditorCore.openIdentifierSelect('@');
     },
     handleCancelTrigger(identifier) {
       if (identifier === '@') {
