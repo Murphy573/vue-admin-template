@@ -7,8 +7,6 @@
       tabindex="0"
       spellcheck="true"
       contenteditable="true"
-      @focus="handleFocus"
-      @blur="handleBlur"
       @keydown="handleKeydown"
       @keyup="handleKeyup"
       @click="handleClick"
@@ -17,7 +15,7 @@
       @paste="handlePaste"></div>
     maxlength:{{ maxlength }},contentLength:{{
       richtextEditorOptions.contentLength
-    }},isExceedMaxlength:{{ isExceedMaxlength }}
+    }},richtextEditorOptions.isFocus:{{ richtextEditorOptions.isFocus }}
   </div>
 </template>
 
@@ -237,7 +235,7 @@ export default {
         editingNode: null,
         filterText: '',
         filterTextPattern: null,
-        focus: this.richtextEditorOptions.isFocus,
+        isFocus: this.richtextEditorOptions.isFocus,
         contentLength: 0,
       };
       this.setFilterText('');
@@ -302,6 +300,8 @@ export default {
 
     // 当点击编辑器时
     handleClick(event) {
+      this.setRichtextEditorFocus();
+
       const target = event.target;
       // 如果存在可编辑节点，则始终将光标放在可编辑节点最后一个0宽字符前面：保证删除时判断正常取消触发
       if (this.isTriggerEditing) {
@@ -369,18 +369,19 @@ export default {
           // } else {
           // }
           if (!this.isCanLF) return;
-          // TODO: 未解决有字符需要按下两次回车才会换行
+          // 换行
           const selection = window.getSelection();
           if (selection && selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
             const startOffset = range?.startOffset || 0;
             const endOffset = range?.endOffset || 0;
-            this.pasteHtml('<br/>', startOffset, endOffset);
+            // NOTE: br添加0宽节点，解决有字符需要按下两次回车才会换行的问题
+            this.pasteHtml(`<br/>${ZeroWidthSpace}`, startOffset, endOffset);
             this.caculateSrcollHeight();
           }
         }
         // 转换输入内容
-        this.genEditorInputContent();
+        // this.genEditorInputContent();
       }
     },
 
@@ -530,6 +531,10 @@ export default {
     // 转换输入内容
     genEditorInputContent() {
       if (!this.richtextEditor) return;
+      // 输入法输入时
+      if (this.compositionOptions.isInputing) return;
+      // 编辑器未聚焦时
+      if (!this.richtextEditorOptions.isFocus) return;
 
       const texts = [];
       let contentLength = 0;
@@ -578,7 +583,10 @@ export default {
           }
         })
         .filter((item) => {
-          return item.type !== 'unknown';
+          // 过滤掉unknown和content为空串的
+          const isUnknown = item.type === 'unknown';
+          const noContentText = item.type === 'text' && item.content === '';
+          return !isUnknown && !noContentText;
         });
 
       if (contentLength > this.maxlength) {
@@ -596,31 +604,26 @@ export default {
         this.richtextEditorOptions.contentLength = contentLength;
       }
 
-      if (!hasIdentifierNode) {
-        this.$emit('inputchange', texts.join('').trim());
-      } else {
-        this.$emit('inputchange', content);
-      }
-    },
-
-    handleFocus() {
       // eslint-disable-next-line no-console
-      // console.log('handleFocus');
-    },
+      console.log('content', content);
 
-    // 丢失焦点
-    handleBlur() {
-      this.richtextEditorOptions.isFocus = false;
+      // 向外发送的数据
+      const emitData = {
+        contentLength: this.richtextEditorOptions.contentLength,
+        contentData: !hasIdentifierNode ? texts.join('').trim() : content,
+      };
+
+      this.$emit('on-input-change', emitData);
     },
 
     // 点击容器外：是指包含输入节点、快捷插入节点等之外的节点
     handleClickoutside() {
-      this.richtextEditorOptions.isFocus = false;
       this.cancelIdentifierSelect(
         this.richtextEditorOptions.currentIndentifier,
         false
       );
       this.genEditorInputContent();
+      this.richtextEditorOptions.isFocus = false;
       // 将光标移动到最后面
       this.moveCaret2StartOrEnd('end');
       this.setLastRangeRecord();
