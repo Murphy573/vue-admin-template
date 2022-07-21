@@ -23,6 +23,8 @@
 const ZeroWidthSpace = '\u200b';
 const SpaceHolder = '\xA0';
 
+const debug = require('debug')('ve:RichtextEditorCore');
+
 export default {
   name: 'RichtextEditorCore',
 
@@ -82,6 +84,8 @@ export default {
         'Enter',
         'Tab',
       ],
+      // 删除键
+      deleteKeys: ['Backspace', 'Delete'],
     };
   },
 
@@ -372,7 +376,7 @@ export default {
         }
       } else {
         // 达到最大输入长度，且不是删除，禁止输入
-        if (this.isExceedMaxlength && key !== 'Backspace') {
+        if (this.isExceedMaxlength && !this.deleteKeys.includes(key)) {
           event.preventDefault();
         } else if (key === 'Enter') {
           event.preventDefault();
@@ -396,6 +400,29 @@ export default {
             this.caculateSrcollHeight();
           }
         }
+        // else {
+        //   if (this.deleteKeys.includes(key)) {
+        //     if (key === this.deleteKeys[0]) {
+        //       const selection = window.getSelection();
+        //       if (!selection?.isCollapsed) return;
+        //       const range = selection?.getRangeAt(0);
+        //       debugger;
+        //       debug(selection);
+        //       const selAnchorNode = range.startContainer;
+        //       debug('selAnchorNode', selAnchorNode);
+        //       const selAnchorNodeContent = selAnchorNode?.textContent;
+        //       debug('selAnchorNodeContent', selAnchorNodeContent);
+        //       if (!selAnchorNodeContent) {
+        //         const prevNode = selAnchorNodeContent.previousSibling;
+        //         debug('prevNode', prevNode);
+        //         if (prevNode?.getAttribute?.('contenteditable') === 'false') {
+        //           prevNode?.parentNode?.removeChild?.(prevNode);
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
+
         // 转换输入内容
         // this.genEditorInputContent();
       }
@@ -423,12 +450,12 @@ export default {
           }
         );
         if (childNodes?.length) {
-          const total = childNodes.length;
-          const lastNode = childNodes[total - 1];
-          if (lastNode?.className === 'editor-node') {
+          const lastNode = childNodes[childNodes.length - 1];
+          if (lastNode?.getAttribute?.('contenteditable') === 'false') {
             this.richtextEditor.removeChild(lastNode);
           }
         }
+
         // 转换输入内容
         this.genEditorInputContent();
         return;
@@ -460,7 +487,7 @@ export default {
         if (this.compositionOptions.isInputing) return;
 
         // 如果是@编辑状态，则删除分隔符时删除整个编辑区域
-        if (key === 'Backspace') {
+        if (this.deleteKeys.includes(key)) {
           const anchorNode = selection.anchorNode;
           const firstSperator =
             anchorNode?.textContent?.indexOf(ZeroWidthSpace) || 0;
@@ -851,6 +878,7 @@ export default {
   },
 
   mounted() {
+    debug('mounted', '1');
     this.$nextTick(() => {
       this.richtextEditor = this.$refs.richtextRef || null;
 
