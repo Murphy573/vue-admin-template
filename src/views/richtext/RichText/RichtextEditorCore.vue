@@ -21,9 +21,10 @@
 
 <script>
 const ZeroWidthSpace = '\u200b';
+const SpaceHolder = '\xA0';
 
 export default {
-  name: 'Richtext',
+  name: 'RichtextEditorCore',
 
   props: {
     placeholder: {
@@ -290,9 +291,9 @@ export default {
         this.richtextEditor.insertBefore(newTextNode, editingNode);
         this.richtextEditor.removeChild(editingNode);
       }
-      // 是否追加0宽节点
+      // 是否追加空格
       if (insertEmpty) {
-        const emptyNode = document.createTextNode('\xA0');
+        const emptyNode = document.createTextNode(SpaceHolder);
         this.insertContentOnCaret({ content: emptyNode });
         this.setRichtextEditorFocus();
       }
@@ -314,19 +315,34 @@ export default {
         sel.addRange(range);
       } else {
         // 当点击的不可编辑节点
-        if (target.getAttribute('contenteditable') === 'false') {
-          // 因为手动插入了空节点，所以取下下一个
-          let nextEle = target.nextSibling.nextSibling;
-          const newTextNode = document.createTextNode('');
-          if (!nextEle) {
-            this.richtextEditor?.appendChild(newTextNode);
-          } else {
-            this.richtextEditor.insertBefore(newTextNode, nextEle);
-          }
-
+        if (target?.getAttribute?.('contenteditable') === 'false') {
+          // 因为手动插入了空节点，所以取下一个
+          let nextEle = target.nextSibling;
           const sel = window.getSelection();
           const range = document.createRange();
-          range.setStartBefore(newTextNode);
+          const newTextNode = document.createTextNode('');
+
+          // 下个节点不存在，插入新节点
+          if (!nextEle) {
+            this.richtextEditor?.appendChild(newTextNode);
+            range.setStartBefore(newTextNode);
+          } else {
+            // 下个节点不可编辑，则在下个节点前插入一个text节点
+            if (nextEle?.getAttribute?.('contenteditable') === 'false') {
+              newTextNode.textContent = SpaceHolder;
+              this.richtextEditor.insertBefore(newTextNode, nextEle);
+              range.setStart(newTextNode, 1);
+            } else {
+              const nextEleContent = nextEle.textContent;
+              // 下个节点内容的首字符是否是空格字符
+              if (!/^\xA0$/g.test(nextEleContent.charAt(0))) {
+                range.setStart(nextEle, 0);
+              } else {
+                range.setStart(nextEle, 1);
+              }
+            }
+          }
+
           range.collapse(true);
           sel.removeAllRanges();
           sel.addRange(range);
