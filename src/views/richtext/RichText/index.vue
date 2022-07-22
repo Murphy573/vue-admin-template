@@ -79,10 +79,12 @@ export default {
         {
           key: '@',
           datasetKey: 'memberInfo',
+          identifierPos: 'end',
         },
         {
           key: '#',
           datasetKey: 'topicInfo',
+          identifierPos: 'surround',
         },
       ],
     };

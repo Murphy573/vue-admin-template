@@ -20,8 +20,15 @@
 </template>
 
 <script>
-const ZeroWidthSpace = '\u200b';
-const SpaceHolder = '\xA0';
+import {
+  setElementDataset,
+  getElementDataset,
+  getCaretCoordsOfDocument,
+  moveCaret2StartOrEnd,
+  clearZeroWidthSpace,
+  ZeroWidthSpaceChar,
+  SpaceHolderChar,
+} from './util';
 
 const debug = require('debug')('ve:RichtextEditorCore');
 
@@ -136,8 +143,8 @@ export default {
         content: data[contentKey],
       });
 
-      this.setElementDataset(atNode, 'identifier', identifier);
-      this.setElementDataset(
+      setElementDataset(atNode, 'identifier', identifier);
+      setElementDataset(
         atNode,
         currentIndentifierOption.datasetKey,
         JSON.stringify(data)
@@ -192,7 +199,7 @@ export default {
       // 没有range记录则是首次编辑，直接将光标移至末尾
       if (!this.lastRangeRecord) {
         this.richtextEditor.appendChild(placeholderNode);
-        this.moveCaret2StartOrEnd('end');
+        moveCaret2StartOrEnd(this.richtextEditor, 'end');
       } else {
         // 有range记录则不是首次编辑
         const sel = window.getSelection();
@@ -221,7 +228,7 @@ export default {
 
     // 设置搜索关键词
     setFilterText(text) {
-      text = this.clearZeroWidthSpace(text);
+      text = clearZeroWidthSpace(text);
       const match = this.richtextEditorOptions.filterTextPattern?.exec?.(
         text || ''
       );
@@ -255,21 +262,36 @@ export default {
     /**
      * 创建占位节点
      */
-    createPlaceholderNode({
-      identifier = '@',
-      content = '',
-      canEdit = true,
-      identifierAlsoEnd = false,
-    }) {
+    createPlaceholderNode({ identifier = '@', content = '', canEdit = true }) {
       const font = document.createElement('font');
       font.setAttribute('class', 'editor-node');
       font.setAttribute('contenteditable', canEdit ? 'true' : 'false');
-      font.setAttribute('tabindex', -1);
+      font.setAttribute('tabindex', '-1');
+
+      const currentIndentifierOption =
+        this.genAllIdentifierOptionsMap[identifier];
+      if (!currentIndentifierOption) return;
+
+      const { identifierPos = 'start' } = currentIndentifierOption;
+
+      let text = content;
       // 编辑时，content左右插入0宽节点
-      const text = `${identifier}${canEdit ? ZeroWidthSpace : ''}${content}${
-        canEdit ? ZeroWidthSpace : ''
-      }${identifierAlsoEnd ? identifier : ''}`;
-      const textNode = document.createTextNode(canEdit ? text : ` ${text}`);
+      if (canEdit) {
+        text = identifier + ZeroWidthSpaceChar + content + ZeroWidthSpaceChar;
+      } else {
+        // 根据配置的标识位置动态拼接
+        if (identifierPos === 'start') {
+          text = identifier + text;
+        } else if (identifierPos === 'end') {
+          text = text + identifier;
+        } else if (identifierPos === 'surround') {
+          text = identifier + text + identifier;
+        }
+        // 不可编辑前方插入空格
+        text = ` ${text}`;
+      }
+
+      const textNode = document.createTextNode(text);
       font.appendChild(textNode);
 
       return font;
@@ -288,7 +310,7 @@ export default {
       if (typeof content === 'string') {
         // 消除0宽节点
         newTextNode = document.createTextNode(
-          this.clearZeroWidthSpace(`${identifier}${content}`)
+          clearZeroWidthSpace(`${identifier}${content}`)
         );
       }
       if (this.richtextEditor.contains(editingNode)) {
@@ -297,7 +319,7 @@ export default {
       }
       // 是否追加空格
       if (insertEmpty) {
-        const emptyNode = document.createTextNode(SpaceHolder);
+        const emptyNode = document.createTextNode(SpaceHolderChar);
         this.insertContentOnCaret({ content: emptyNode });
         this.setRichtextEditorFocus();
       }
@@ -333,7 +355,7 @@ export default {
           } else {
             // 下个节点不可编辑，则在下个节点前插入一个text节点
             if (nextEle?.getAttribute?.('contenteditable') === 'false') {
-              newTextNode.textContent = SpaceHolder;
+              newTextNode.textContent = SpaceHolderChar;
               this.richtextEditor.insertBefore(newTextNode, nextEle);
               range.setStart(newTextNode, 1);
             } else {
@@ -396,7 +418,13 @@ export default {
             const startOffset = range?.startOffset || 0;
             const endOffset = range?.endOffset || 0;
             // NOTE: br添加0宽节点，解决有字符需要按下两次回车才会换行的问题
-            this.pasteHtml(`<br/>${ZeroWidthSpace}`, startOffset, endOffset);
+            this.insertHtml(
+              `<br/>${ZeroWidthSpaceChar}`,
+              startOffset,
+              endOffset,
+              range.startContainer,
+              range.endContainer
+            );
             this.caculateSrcollHeight();
           }
         }
@@ -490,9 +518,9 @@ export default {
         if (this.deleteKeys.includes(key)) {
           const anchorNode = selection.anchorNode;
           const firstSperator =
-            anchorNode?.textContent?.indexOf(ZeroWidthSpace) || 0;
+            anchorNode?.textContent?.indexOf(ZeroWidthSpaceChar) || 0;
           const lastSperator =
-            anchorNode?.textContent?.lastIndexOf(ZeroWidthSpace) || 0;
+            anchorNode?.textContent?.lastIndexOf(ZeroWidthSpaceChar) || 0;
           if (firstSperator >= lastSperator) {
             this.cancelIdentifierSelect(
               this.richtextEditorOptions.currentIndentifier
@@ -536,7 +564,7 @@ export default {
         if (selection && selection.rangeCount > 0) {
           const range = selection.getRangeAt(0);
           const startOffset = range?.startOffset || 0;
-          this.pasteHtml(
+          this.insertHtml(
             newValueStr,
             startOffset - inputData.length,
             startOffset
@@ -565,7 +593,13 @@ export default {
       const range = selection.getRangeAt(0);
       const startOffset = range?.startOffset || 0;
       const endOffset = range?.endOffset || 0;
-      this.pasteHtml(paste, startOffset, endOffset);
+      this.insertHtml(
+        paste,
+        startOffset,
+        endOffset,
+        range.startContainer,
+        range.endContainer
+      );
       this.caculateSrcollHeight();
       // 转换输入内容
       this.genEditorInputContent();
@@ -590,7 +624,7 @@ export default {
       const content = childNodes
         .map((item) => {
           if (item && item.nodeName === '#text') {
-            const textContent = this.clearZeroWidthSpace(
+            const textContent = clearZeroWidthSpace(
               item?.textContent?.trim() || ''
             );
             texts.push(textContent);
@@ -607,11 +641,11 @@ export default {
               content: '\n',
             };
           } else {
-            const identifier = this.getElementDataset(item, 'identifier');
+            const identifier = getElementDataset(item, 'identifier');
             if (identifier) {
               hasIdentifierNode = true;
               const identifierDataInfo = JSON.parse(
-                this.getElementDataset(
+                getElementDataset(
                   item,
                   this.genAllIdentifierOptionsMap[identifier].datasetKey
                 )
@@ -668,7 +702,7 @@ export default {
       this.genEditorInputContent();
       this.richtextEditorOptions.isFocus = false;
       // 将光标移动到最后面
-      this.moveCaret2StartOrEnd('end');
+      moveCaret2StartOrEnd(this.richtextEditor, 'end');
       this.setLastRangeRecord();
       this.richtextEditor?.blur();
     },
@@ -684,42 +718,17 @@ export default {
     insertContentOnCaret({ content = '' }) {
       this.setRichtextEditorFocus();
 
-      let sel = window.getSelection();
       if (typeof content === 'string') {
         content = document.createTextNode(content);
       }
-      if (sel.getRangeAt && sel.rangeCount) {
-        let range = sel.getRangeAt(0);
-        range.deleteContents();
 
-        range.insertNode(content);
-        if (content) {
-          range = range.cloneRange();
-          range.setStartAfter(content);
-          range.collapse(true);
-          sel.removeAllRanges();
-          sel.addRange(range);
-        }
-      }
-    },
-
-    // 移动光标到开头或者
-    moveCaret2StartOrEnd(type = 'start') {
-      const sel = window.getSelection();
-      sel.selectAllChildren(this.richtextEditor);
-      //光标移至开头
-      if (type === 'start') {
-        sel.collapseToStart();
-      } else {
-        //光标移至末尾
-        sel.collapseToEnd();
-      }
+      this.insertHtml(content);
     },
 
     // 同步光标在容器内的坐标
     syncCaretPos() {
       if (!this.richtextEditor) return;
-      const { x, y } = this.getCaretCoordsOfDocument();
+      const { x, y } = getCaretCoordsOfDocument();
       const { top, left } = this.richtextEditor.getBoundingClientRect();
 
       this.caretPos = {
@@ -728,62 +737,6 @@ export default {
       };
 
       this.$emit('on-sync-caret-pos', { ...this.caretPos });
-    },
-
-    // 获取光标在整个文档内的坐标
-    getCaretCoordsOfDocument() {
-      let win = window;
-      let doc = win.document;
-      let sel = doc.selection;
-      let range;
-      let rects;
-      let rect;
-      let x = 0;
-      let y = 0;
-      if (sel) {
-        if (sel.type !== 'Control') {
-          range = sel.createRange();
-          range.collapse(true);
-          x = range.boundingLeft;
-          y = range.boundingTop;
-        }
-      } else if (win.getSelection) {
-        sel = win.getSelection();
-        if (sel.rangeCount) {
-          range = sel.getRangeAt(0).cloneRange();
-          if (range.getClientRects) {
-            range.collapse(true);
-            rects = range.getClientRects();
-            if (rects.length > 0) {
-              rect = rects[0];
-            }
-            // 光标在行首时，rect为undefined
-            if (rect) {
-              x = rect.left;
-              y = rect.top;
-            }
-          }
-          // Fall back to inserting a temporary element
-          if ((x === 0 && y === 0) || rect === undefined) {
-            let span = doc.createElement('span');
-            if (span.getClientRects) {
-              // Ensure span has dimensions and position by
-              // adding a zero-width space character
-              span.appendChild(doc.createTextNode('\u200b'));
-              range.insertNode(span);
-              rect = span.getClientRects()[0];
-              x = rect.left;
-              y = rect.top;
-              let spanParent = span.parentNode;
-              spanParent.removeChild(span);
-
-              // Glue any broken text nodes back together
-              spanParent.normalize();
-            }
-          }
-        }
-      }
-      return { x, y };
     },
 
     deleteHtml(startPos, endPos, node = null) {
@@ -796,24 +749,46 @@ export default {
       range.deleteContents();
     },
 
-    pasteHtml(html, startPos, endPos, node = null) {
+    insertHtml(
+      content,
+      startPos = -1,
+      endPos = -1,
+      anchorNode = null,
+      focusNode = null
+    ) {
       let sel = window.getSelection();
       let range = document.createRange();
       if (!range || !sel) return;
-      let anchorNode = node ? node : sel.anchorNode;
+
+      anchorNode = anchorNode || sel.anchorNode;
+      focusNode = focusNode || sel.focusNode;
+
+      if (!anchorNode) return;
+
+      if (startPos < 0 || endPos < 0) {
+        startPos = sel.anchorOffset;
+        endPos = sel.focusOffset;
+      }
+
       range.setStart(anchorNode, startPos);
-      range.setEnd(anchorNode, endPos);
+      range.setEnd(focusNode, endPos);
       range.deleteContents();
 
-      let el = document.createElement('div');
-      el.innerHTML = html;
-      let frag = document.createDocumentFragment();
       let curNode;
       let lastNode;
-      while ((curNode = el.firstChild)) {
-        lastNode = frag.appendChild(curNode);
+      if (typeof content === 'string') {
+        let el = document.createElement('div');
+        el.innerHTML = content;
+        let frag = document.createDocumentFragment();
+        while ((curNode = el.firstChild)) {
+          lastNode = frag.appendChild(curNode);
+        }
+        range.insertNode(frag);
+      } else {
+        lastNode = content;
+        range.insertNode(lastNode);
       }
-      range.insertNode(frag);
+
       if (lastNode) {
         range = range.cloneRange();
         range.setStartAfter(lastNode);
@@ -840,7 +815,7 @@ export default {
         selection.addRange(this.lastRangeRecord);
       }
       if (selection && selection.rangeCount > 0) {
-        const inputRect = this.getCaretCoordsOfDocument();
+        const inputRect = getCaretCoordsOfDocument();
         if (scrollRect && inputRect) {
           const top = scrollRect.y;
           const bottom = scrollRect.y + scrollRect.height;
@@ -854,26 +829,6 @@ export default {
           }
         }
       }
-    },
-
-    // h5 dataset设置和获取值
-    setElementDataset(target, name, value) {
-      if (target.dataset) {
-        target.dataset[name] = value;
-      } else {
-        target.setAttribute(`data-${name}`, value);
-      }
-    },
-    getElementDataset(target, name) {
-      if (target.dataset) {
-        return target.dataset[name];
-      }
-
-      return target.getAttribute(`data-${name}`);
-    },
-    // 清除0宽节点
-    clearZeroWidthSpace(str) {
-      return str.replace(/[\u200B-\u200D\uFEFF]*/g, '');
     },
   },
 
