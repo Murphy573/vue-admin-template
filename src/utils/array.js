@@ -79,3 +79,28 @@ export function compareArraySort(...args) {
   }
   return true;
 }
+
+/**
+ * 组合：实现数学上的C42
+ * @param {Array<any>} arr 数组
+ * @param {Number} size 几项为一个组合
+ * @returns
+ */
+export function combination(arr, size) {
+  const r = [];
+
+  function _(target, sourceArr, n) {
+    if (n === 0) {
+      r[r.length] = target;
+      return;
+    }
+    for (let i = 0, l = sourceArr.length - n; i <= l; i++) {
+      let b = target.slice();
+      b.push(sourceArr[i]);
+      _(b, sourceArr.slice(i + 1), n - 1);
+    }
+  }
+
+  _([], arr, size);
+  return r;
+}
