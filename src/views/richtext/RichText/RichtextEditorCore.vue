@@ -1,8 +1,10 @@
 <template>
-  <div>
+  <div :class="genWrapperStyle.class" :style="genWrapperStyle.style">
     <div
       ref="richtextRef"
       class="my-richtext"
+      :class="genEditorStyle.class"
+      :style="genEditorStyle.style"
       :placeholder="placeholder"
       tabindex="0"
       spellcheck="true"
@@ -29,6 +31,7 @@ import {
   ZeroWidthSpaceChar,
   SpaceHolderChar,
 } from './util';
+import { isPlainObj } from '@/utils/common.js';
 
 const debug = require('debug')('ve:RichtextEditorCore');
 
@@ -53,6 +56,47 @@ export default {
     identifierOptions: {
       type: Array,
       default: () => [],
+    },
+    // 计算出来的光标在容器内的偏移量
+    caretPosOffset: {
+      type: Object,
+      default: () => ({ x: 0, y: 24 }),
+    },
+    // 光标位置是否基于容器
+    isCaretPosByContainer: {
+      type: Boolean,
+      default: false,
+    },
+    // 高亮标签配置：要么在identifierOptions配置，要么在当前位置配置组件全局的
+    highlightTagOption: {
+      type: Object,
+      // 都支持以下属性
+      default: () => ({
+        tag: 'font',
+        className: 'editor-node',
+        attribute: {},
+        style: {},
+      }),
+    },
+    // 最外层容器的样式
+    wrapperStyle: {
+      type: Object,
+      default: () => ({ className: '', style: {} }),
+    },
+    // 编辑器元素的样式
+    editorStyle: {
+      type: Object,
+      default: () => ({ className: '', style: {} }),
+    },
+    // 计数元素的样式
+    countStyle: {
+      type: Object,
+      default: () => ({ className: '', style: {} }),
+    },
+    // 是否展示计数元素
+    showCount: {
+      type: Boolean,
+      default: true,
     },
   },
 
@@ -101,11 +145,14 @@ export default {
       return this.richtextEditorOptions.contentLength >= this.maxlength;
     },
     genAllIdentifierOptionsMap() {
-      const map = {};
+      const map = this.identifierOptions.reduce((prev, next) => {
+        const item = { ...next };
+        // 不传则为1
+        item.contentLength = item.contentLength || 1;
 
-      this.identifierOptions.forEach((item) => {
-        map[item.key] = item;
-      });
+        prev[item.identifier] = item;
+        return prev;
+      }, {});
 
       return map;
     },
@@ -117,16 +164,29 @@ export default {
       const { editingNode, currentIndentifier } = this.richtextEditorOptions;
       return !!editingNode && !!currentIndentifier;
     },
+    genWrapperStyle() {
+      return {
+        class: this.wrapperStyle.className?.split(' ') || [],
+        style: this.wrapperStyle.style || {},
+      };
+    },
+    genEditorStyle() {
+      return {
+        class: this.editorStyle.className?.split(' ') || [],
+        style: this.editorStyle.style || {},
+      };
+    },
+    genCountStyle() {
+      return {
+        class: this.countStyle.className?.split(' ') || [],
+        style: this.countStyle.style || {},
+      };
+    },
   },
 
   methods: {
     // 关键词触发的选中：外部调用
-    confirmIdentifierSelect({
-      identifier,
-      data,
-      contentKey,
-      identifierAlsoEnd,
-    }) {
+    confirmIdentifierSelect({ identifier, data, contentKey }) {
       const currentIndentifierOption =
         this.genAllIdentifierOptionsMap[identifier];
       if (!currentIndentifierOption) {
@@ -138,7 +198,6 @@ export default {
 
       const atNode = this.createPlaceholderNode({
         identifier,
-        identifierAlsoEnd: !!identifierAlsoEnd,
         canEdit: false,
         content: data[contentKey],
       });
@@ -263,28 +322,49 @@ export default {
      * 创建占位节点
      */
     createPlaceholderNode({ identifier = '@', content = '', canEdit = true }) {
-      const font = document.createElement('font');
-      font.setAttribute('class', 'editor-node');
-      font.setAttribute('contenteditable', canEdit ? 'true' : 'false');
-      font.setAttribute('tabindex', '-1');
-
       const currentIndentifierOption =
         this.genAllIdentifierOptionsMap[identifier];
-      if (!currentIndentifierOption) return;
 
-      const { identifierPos = 'start' } = currentIndentifierOption;
+      // 高亮节点配置
+      const {
+        tag = 'span',
+        className = 'highlight',
+        attribute = {},
+        style = {},
+      } = currentIndentifierOption.highlightTagOption ||
+      this.highlightTagOption;
 
+      const ele = document.createElement(tag);
+      // 设置类名
+      ele.setAttribute('class', className);
+      // 设置属性
+      ele.setAttribute('contenteditable', canEdit ? 'true' : 'false');
+      ele.setAttribute('tabindex', '-1');
+      if (isPlainObj(attribute)) {
+        Object.keys(attribute).forEach((key) => {
+          ele.setAttribute(key, attribute[key]);
+        });
+      }
+      // 设置样式
+      if (style && isPlainObj(style)) {
+        Object.keys(style).forEach((key) => {
+          ele.style.setProperty(key, style[key]);
+        });
+      }
+      const { insertPosition = 'start' } = currentIndentifierOption;
+
+      // 设置innerText
       let text = content;
       // 编辑时，content左右插入0宽节点
       if (canEdit) {
         text = identifier + ZeroWidthSpaceChar + content + ZeroWidthSpaceChar;
       } else {
         // 根据配置的标识位置动态拼接
-        if (identifierPos === 'start') {
+        if (insertPosition === 'start') {
           text = identifier + text;
-        } else if (identifierPos === 'end') {
+        } else if (insertPosition === 'end') {
           text = text + identifier;
-        } else if (identifierPos === 'surround') {
+        } else if (insertPosition === 'surround') {
           text = identifier + text + identifier;
         }
         // 不可编辑前方插入空格
@@ -292,9 +372,9 @@ export default {
       }
 
       const textNode = document.createTextNode(text);
-      font.appendChild(textNode);
+      ele.appendChild(textNode);
 
-      return font;
+      return ele;
     },
 
     // 替换当前正在编辑的节点为其他节点
@@ -644,13 +724,12 @@ export default {
             const identifier = getElementDataset(item, 'identifier');
             if (identifier) {
               hasIdentifierNode = true;
+              const { datasetKey, contentLength: identifierContentLength } =
+                this.genAllIdentifierOptionsMap[identifier];
               const identifierDataInfo = JSON.parse(
-                getElementDataset(
-                  item,
-                  this.genAllIdentifierOptionsMap[identifier].datasetKey
-                )
+                getElementDataset(item, datasetKey)
               );
-              contentLength += 1;
+              contentLength += identifierContentLength;
               return {
                 type: identifier,
                 content: identifierDataInfo,
@@ -728,12 +807,22 @@ export default {
     // 同步光标在容器内的坐标
     syncCaretPos() {
       if (!this.richtextEditor) return;
+
       const { x, y } = getCaretCoordsOfDocument();
-      const { top, left } = this.richtextEditor.getBoundingClientRect();
+
+      let containerTop = 0;
+      let containerLeft = 0;
+      if (this.isCaretPosByContainer) {
+        const containerRect = this.richtextEditor.getBoundingClientRect();
+        containerTop = containerRect.top;
+        containerLeft = containerRect.left;
+      }
+
+      const { x: offsetX, y: offsetY } = this.caretPosOffset;
 
       this.caretPos = {
-        x: x - left,
-        y: y - top + 24,
+        x: x - containerLeft + offsetX,
+        y: y - containerTop + offsetY,
       };
 
       this.$emit('on-sync-caret-pos', { ...this.caretPos });

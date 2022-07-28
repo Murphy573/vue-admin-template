@@ -7,6 +7,9 @@
       :identifierOptions="identifierOptions"
       :placeholder="placeholder"
       :maxlength="maxlength"
+      :wrapperStyle="wrapperStyle"
+      :editorStyle="editorStyle"
+      :isCaretPosByContainer="true"
       @on-identifier-search="handleSearch"
       @on-sync-caret-pos="handleSyncCaretPos"
       @on-open-identifier-select="handleTrigger"
@@ -77,16 +80,35 @@ export default {
       },
       identifierOptions: [
         {
-          key: '@',
+          identifier: '@',
           datasetKey: 'memberInfo',
-          identifierPos: 'end',
+          insertPosition: 'start',
+          contentLength: 2,
+          highlightTagOption: {
+            tag: 'span',
+            className: 'member-class',
+            attribute: {
+              d1: '1',
+            },
+            style: {
+              background: 'blue',
+            },
+          },
         },
         {
-          key: '#',
+          identifier: '#',
           datasetKey: 'topicInfo',
-          identifierPos: 'surround',
+          insertPosition: 'surround',
         },
       ],
+      wrapperStyle: {
+        className: 'wrapper-style',
+        style: {},
+      },
+      editorStyle: {
+        className: 'editor-style',
+        style: {},
+      },
     };
   },
 
@@ -168,5 +190,16 @@ export default {
   width: max-content;
   height: max-content;
   user-select: none;
+}
+
+.member-class {
+  color: red;
+}
+
+.wrapper-style {
+  color: rgb(226, 102, 14);
+}
+.editor-style {
+  background: rgb(145, 27, 184);
 }
 </style>
