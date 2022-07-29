@@ -84,10 +84,16 @@ export function clearZeroWidthSpace(str) {
   return str.replace(/[\u200B-\u200D\uFEFF]*/g, '');
 }
 
-// 判断节点是否不可编辑
-export function judgeNodeCannotEditable(ele) {
+/**
+ * 判断节点是否不可编辑
+ * @param {Node} ele 节点
+ * @param {String} nodeName 手动指定某个节点也视为不可编辑节点
+ * @returns {boolean}
+ */
+export function judgeNodeCannotEditable(ele, nodeName = 'BR') {
   return (
     ele.nodeName !== '#text' &&
-    ele?.getAttribute?.('contenteditable') === 'false'
+    (ele?.getAttribute?.('contenteditable') === 'false' ||
+      ele?.nodeName === nodeName)
   );
 }

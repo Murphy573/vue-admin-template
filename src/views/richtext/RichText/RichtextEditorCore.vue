@@ -599,7 +599,7 @@ export default {
      */
     handleDelete() {
       const childNodes = [...this.richtextEditor.childNodes].filter((item) => {
-        return !!item.textContent;
+        return !!item.textContent || item.nodeName === 'BR';
       });
       const willDeleteNodes = [];
 
@@ -611,8 +611,9 @@ export default {
 
         if (index === 0) {
           if (!isCurNodeCannotEditable) {
+            // 如果当前节点包含0宽占位节点，才会进行清除操作，解决向后删除时光标闪烁问题
             if (isCurNodeFisrtCharIsZeroWidthSpace) {
-              curNode.textContent = clearZeroWidthSpace(curNode.textContent);
+              curNode.textContent = clearZeroWidthSpace(curNodeTextContent);
             }
           } else {
             // 字节点仅存在一个不可编辑的节点
@@ -636,11 +637,9 @@ export default {
               willDeleteNodes.push(prevNode);
             }
           } else {
+            // 如果当前节点包含0宽占位节点，才会进行清除操作，解决向后删除时光标闪烁问题
             if (isCurNodeFisrtCharIsZeroWidthSpace) {
-              curNode.textContent = curNodeTextContent.replace(
-                /^[\u200B-\u200D\uFEFF]/,
-                ''
-              );
+              curNode.textContent = clearZeroWidthSpace(curNodeTextContent);
             }
           }
         }
