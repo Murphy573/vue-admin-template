@@ -397,7 +397,7 @@ export default {
         this.richtextEditor.insertBefore(newTextNode, editingNode);
         this.richtextEditor.removeChild(editingNode);
       }
-      // 是否追加空格
+      // 是否追加0宽占位符
       if (insertEmpty) {
         const emptyNode = document.createTextNode(ZeroWidthSpaceChar);
         this.insertContentOnCaret({ content: emptyNode });
@@ -440,7 +440,7 @@ export default {
               range.setStart(newTextNode, 1);
             } else {
               const nextEleContent = nextEle.textContent;
-              // 下个节点内容的首字符是否是空格字符
+              // 下个节点内容的首字符是否是0宽字符
               if (!/^[\u200B-\u200D\uFEFF]$/g.test(nextEleContent.charAt(0))) {
                 range.setStart(nextEle, 0);
               } else {
@@ -524,9 +524,9 @@ export default {
         !this.genAllIdetifiers.includes(key) &&
         !this.isTriggerEditing
       ) {
-        // 当最后的节点为高亮节点时，会有指针位置紊乱的问题，在生成高亮节点时通过尾部加上空格规避，删除空格时连带高亮节点一起删除
         if (!this.richtextEditor) return;
 
+        // 当删除占位符号时，连带不可编辑节点一起删除
         if (this.deleteKeys.includes(key)) {
           this.handleDelete();
         }
@@ -576,7 +576,7 @@ export default {
           }
         }
 
-        // 左右移动光标、ESC退出编辑模式
+        // 左右移动光标
         if (['ArrowLeft', 'ArrowRight'].indexOf(key) >= 0) {
           this.cancelIdentifierSelect(
             this.richtextEditorOptions.currentIndentifier
@@ -590,6 +590,7 @@ export default {
     },
 
     /**
+     * 当删除占位符号时，连带不可编辑节点一起删除
      * 删除处理： 遍历子节点
      *  - 如果当前节点是不可编辑节点：则看前一个节点是否是不可编辑节点，如果不可编辑，则将前一个节点删掉
      *  - 如果当前节点是可编辑节点：则看前一个节点是否是不可编辑节点
@@ -605,7 +606,7 @@ export default {
 
       childNodes.forEach((curNode, index) => {
         const isCurNodeCannotEditable = judgeNodeCannotEditable(curNode);
-        const curNodeTextContent = curNode.textContent;
+        const curNodeTextContent = curNode.textContent || '';
         const isCurNodeFisrtCharIsZeroWidthSpace =
           /^[\u200B-\u200D\uFEFF]$/g.test(curNodeTextContent.charAt(0));
 
@@ -644,6 +645,7 @@ export default {
           }
         }
 
+        // 最后一个节点是不可编辑也删除
         if (index === childNodes.length - 1 && isCurNodeCannotEditable) {
           willDeleteNodes.push(curNode);
         }
