@@ -137,6 +137,8 @@ export default {
       ],
       // 删除键
       deleteKeys: ['Backspace', 'Delete'],
+      // 方向键键
+      arrowKeys: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'],
     };
   },
 
@@ -531,6 +533,11 @@ export default {
           this.handleDelete();
         }
 
+        // 方向键光标处理
+        if (this.arrowKeys.includes(key)) {
+          this.handleArrowKeyEvent(key);
+        }
+
         // 转换输入内容
         this.genEditorInputContent();
         return;
@@ -577,7 +584,7 @@ export default {
         }
 
         // 左右移动光标
-        if (['ArrowLeft', 'ArrowRight'].indexOf(key) >= 0) {
+        if (['ArrowLeft', 'ArrowRight'].includes(key)) {
           this.cancelIdentifierSelect(
             this.richtextEditorOptions.currentIndentifier
           );
@@ -654,6 +661,66 @@ export default {
       // 删除对应节点
       willDeleteNodes.forEach((node) => {
         this.richtextEditor.removeChild(node);
+      });
+    },
+
+    /**
+     * 方向键处理：处理光标上下左右移动时，会移动到0宽占位符节点前面的问题
+     */
+    handleArrowKeyEvent(key) {
+      this.$nextTick(() => {
+        if (!this.richtextEditor) return;
+
+        const selection = window.getSelection();
+        // 保存最后的range对象
+        const range = selection?.getRangeAt(0);
+        const caretOffset = range?.startOffset;
+        // 如果光标不是闭合的，则不处理
+        if (!range?.collapsed) return;
+
+        const curNode = range?.startContainer;
+        const curNodeTextContent = curNode.textContent || '';
+        const isCaretBeforeZeroWidthSpace = /^[\u200B-\u200D\uFEFF]$/g.test(
+          curNodeTextContent.charAt(caretOffset) || ''
+        );
+
+        if (!isCaretBeforeZeroWidthSpace) return;
+
+        const childNodes = [...this.richtextEditor.childNodes].filter(
+          (item) => {
+            return !!item.textContent || item.nodeName === 'BR';
+          }
+        );
+
+        const findIndex = childNodes.findIndex((node) => node === curNode);
+
+        let newRange = range.cloneRange();
+
+        // 向左移动光标
+        if (key === 'ArrowLeft') {
+          if (findIndex < 1) return;
+          const prevNode = childNodes[findIndex - 1];
+          const isPrevNodeCannotEditable = judgeNodeCannotEditable(prevNode);
+
+          // 如果前一个节点是不可编辑的，则将光标移动到前前节点之后
+          if (isPrevNodeCannotEditable) {
+            const prevPrevNode = childNodes[findIndex - 2];
+
+            if (prevPrevNode) {
+              newRange.setStartAfter(prevPrevNode);
+            } else {
+              newRange.setStart(this.richtextEditor, 0);
+            }
+          }
+        } else {
+          // 向右移动光标
+          if (findIndex > childNodes.length - 1) return;
+          newRange.setStart(curNode, caretOffset + 1);
+        }
+
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
       });
     },
 
@@ -863,6 +930,9 @@ export default {
       this.$emit('on-sync-caret-pos', { ...this.caretPos });
     },
 
+    /**
+     * 删除html
+     */
     deleteHtml(startPos, endPos, node = null) {
       let sel = window.getSelection();
       let range = document.createRange();
@@ -873,6 +943,14 @@ export default {
       range.deleteContents();
     },
 
+    /**
+     * 在选区内插入HTML
+     * @param {string|HTMLElement} content 要插入的内容
+     * @param {number} startPos 选区开始位置
+     * @param {number} endPos 选区开始位置
+     * @param {Node} anchorNode 选区开始节点
+     * @param {Node} focusNode 选区结束节点
+     */
     insertHtml(
       content,
       startPos = -1,
