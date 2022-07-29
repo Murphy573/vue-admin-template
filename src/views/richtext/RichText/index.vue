@@ -86,12 +86,8 @@ export default {
           contentLength: 2,
           highlightTagOption: {
             tag: 'span',
-            className: 'member-class',
             attribute: {
               d1: '1',
-            },
-            style: {
-              background: 'blue',
             },
           },
         },
@@ -196,10 +192,10 @@ export default {
   color: red;
 }
 
-.wrapper-style {
-  color: rgb(226, 102, 14);
-}
-.editor-style {
-  background: rgb(145, 27, 184);
-}
+// .wrapper-style {
+//   color: rgb(226, 102, 14);
+// }
+// .editor-style {
+//   background: rgb(145, 27, 184);
+// }
 </style>

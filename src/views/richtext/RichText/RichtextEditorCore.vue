@@ -29,7 +29,7 @@ import {
   moveCaret2StartOrEnd,
   clearZeroWidthSpace,
   ZeroWidthSpaceChar,
-  SpaceHolderChar,
+  judgeNodeCannotEditable,
 } from './util';
 import { isPlainObj } from '@/utils/common.js';
 
@@ -328,7 +328,7 @@ export default {
       // 高亮节点配置
       const {
         tag = 'span',
-        className = 'highlight',
+        className = 'editor-node',
         attribute = {},
         style = {},
       } = currentIndentifierOption.highlightTagOption ||
@@ -368,7 +368,7 @@ export default {
           text = identifier + text + identifier;
         }
         // 不可编辑前方插入空格
-        text = ` ${text}`;
+        text = ` ${text} `;
       }
 
       const textNode = document.createTextNode(text);
@@ -399,7 +399,7 @@ export default {
       }
       // 是否追加空格
       if (insertEmpty) {
-        const emptyNode = document.createTextNode(SpaceHolderChar);
+        const emptyNode = document.createTextNode(ZeroWidthSpaceChar);
         this.insertContentOnCaret({ content: emptyNode });
         this.setRichtextEditorFocus();
       }
@@ -421,7 +421,7 @@ export default {
         sel.addRange(range);
       } else {
         // 当点击的不可编辑节点
-        if (target?.getAttribute?.('contenteditable') === 'false') {
+        if (judgeNodeCannotEditable(target)) {
           // 因为手动插入了空节点，所以取下一个
           let nextEle = target.nextSibling;
           const sel = window.getSelection();
@@ -434,14 +434,14 @@ export default {
             range.setStartBefore(newTextNode);
           } else {
             // 下个节点不可编辑，则在下个节点前插入一个text节点
-            if (nextEle?.getAttribute?.('contenteditable') === 'false') {
-              newTextNode.textContent = SpaceHolderChar;
+            if (judgeNodeCannotEditable(nextEle)) {
+              newTextNode.textContent = ZeroWidthSpaceChar;
               this.richtextEditor.insertBefore(newTextNode, nextEle);
               range.setStart(newTextNode, 1);
             } else {
               const nextEleContent = nextEle.textContent;
               // 下个节点内容的首字符是否是空格字符
-              if (!/^\xA0$/g.test(nextEleContent.charAt(0))) {
+              if (!/^[\u200B-\u200D\uFEFF]$/g.test(nextEleContent.charAt(0))) {
                 range.setStart(nextEle, 0);
               } else {
                 range.setStart(nextEle, 1);
@@ -508,31 +508,6 @@ export default {
             this.caculateSrcollHeight();
           }
         }
-        // else {
-        //   if (this.deleteKeys.includes(key)) {
-        //     if (key === this.deleteKeys[0]) {
-        //       const selection = window.getSelection();
-        //       if (!selection?.isCollapsed) return;
-        //       const range = selection?.getRangeAt(0);
-        //       debugger;
-        //       debug(selection);
-        //       const selAnchorNode = range.startContainer;
-        //       debug('selAnchorNode', selAnchorNode);
-        //       const selAnchorNodeContent = selAnchorNode?.textContent;
-        //       debug('selAnchorNodeContent', selAnchorNodeContent);
-        //       if (!selAnchorNodeContent) {
-        //         const prevNode = selAnchorNodeContent.previousSibling;
-        //         debug('prevNode', prevNode);
-        //         if (prevNode?.getAttribute?.('contenteditable') === 'false') {
-        //           prevNode?.parentNode?.removeChild?.(prevNode);
-        //         }
-        //       }
-        //     }
-        //   }
-        // }
-
-        // 转换输入内容
-        // this.genEditorInputContent();
       }
     },
 
@@ -551,17 +526,9 @@ export default {
       ) {
         // 当最后的节点为高亮节点时，会有指针位置紊乱的问题，在生成高亮节点时通过尾部加上空格规避，删除空格时连带高亮节点一起删除
         if (!this.richtextEditor) return;
-        // 输入空格再删除时有可能会有空节点遗留，判断时过滤掉textContent为空的节点
-        const childNodes = [...this.richtextEditor.childNodes].filter(
-          (item) => {
-            return !!item.textContent;
-          }
-        );
-        if (childNodes?.length) {
-          const lastNode = childNodes[childNodes.length - 1];
-          if (lastNode?.getAttribute?.('contenteditable') === 'false') {
-            this.richtextEditor.removeChild(lastNode);
-          }
+
+        if (this.deleteKeys.includes(key)) {
+          this.handleDelete();
         }
 
         // 转换输入内容
@@ -609,7 +576,7 @@ export default {
           }
         }
 
-        // 非输入法输入: 左右移动光标、ESC退出@编辑模式
+        // 左右移动光标、ESC退出编辑模式
         if (['ArrowLeft', 'ArrowRight'].indexOf(key) >= 0) {
           this.cancelIdentifierSelect(
             this.richtextEditorOptions.currentIndentifier
@@ -620,6 +587,73 @@ export default {
         // 设置搜索
         this.setFilterText(selection?.['anchorNode']?.textContent || '');
       }
+    },
+
+    /**
+     * 删除处理： 遍历子节点
+     *  - 如果当前节点是不可编辑节点：则看前一个节点是否是不可编辑节点，如果不可编辑，则将前一个节点删掉
+     *  - 如果当前节点是可编辑节点：则看前一个节点是否是不可编辑节点
+     *      - 如果前一个节点不可编辑，且当前节点首字符不是占位符，则将前一个节点删掉
+     *      - 如果前一个节点可编辑，则将当前元素的首字符（占位符）清除
+     *  - 边界条件：首节点是可编辑节点，则清除占位符；尾节点是不可编辑节点，则删除；
+     */
+    handleDelete() {
+      const childNodes = [...this.richtextEditor.childNodes].filter((item) => {
+        return !!item.textContent;
+      });
+      const willDeleteNodes = [];
+
+      childNodes.forEach((curNode, index) => {
+        const isCurNodeCannotEditable = judgeNodeCannotEditable(curNode);
+        const curNodeTextContent = curNode.textContent;
+        const isCurNodeFisrtCharIsZeroWidthSpace =
+          /^[\u200B-\u200D\uFEFF]$/g.test(curNodeTextContent.charAt(0));
+
+        if (index === 0) {
+          if (!isCurNodeCannotEditable) {
+            if (isCurNodeFisrtCharIsZeroWidthSpace) {
+              curNode.textContent = clearZeroWidthSpace(curNode.textContent);
+            }
+          } else {
+            // 字节点仅存在一个不可编辑的节点
+            if (index === childNodes.length - 1) {
+              willDeleteNodes.push(curNode);
+            }
+          }
+          return;
+        }
+
+        const prevNode = childNodes[index - 1];
+        const isPrevNodeCannotEditable = judgeNodeCannotEditable(prevNode);
+
+        if (isCurNodeCannotEditable) {
+          if (isPrevNodeCannotEditable) {
+            willDeleteNodes.push(prevNode);
+          }
+        } else {
+          if (isPrevNodeCannotEditable) {
+            if (!isCurNodeFisrtCharIsZeroWidthSpace) {
+              willDeleteNodes.push(prevNode);
+            }
+          } else {
+            if (isCurNodeFisrtCharIsZeroWidthSpace) {
+              curNode.textContent = curNodeTextContent.replace(
+                /^[\u200B-\u200D\uFEFF]/,
+                ''
+              );
+            }
+          }
+        }
+
+        if (index === childNodes.length - 1 && isCurNodeCannotEditable) {
+          willDeleteNodes.push(curNode);
+        }
+      });
+
+      // 删除对应节点
+      willDeleteNodes.forEach((node) => {
+        this.richtextEditor.removeChild(node);
+      });
     },
 
     // 输入法输入开始

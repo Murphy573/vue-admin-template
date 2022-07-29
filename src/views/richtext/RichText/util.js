@@ -76,10 +76,18 @@ export function moveCaret2StartOrEnd(el, type = 'start') {
 }
 
 // 0宽字符
-export const ZeroWidthSpaceChar = '\u200b';
+export const ZeroWidthSpaceChar = '\u200B';
 // 空格字符
 export const SpaceHolderChar = '\xA0';
 // 清除0宽
 export function clearZeroWidthSpace(str) {
   return str.replace(/[\u200B-\u200D\uFEFF]*/g, '');
+}
+
+// 判断节点是否不可编辑
+export function judgeNodeCannotEditable(ele) {
+  return (
+    ele.nodeName !== '#text' &&
+    ele?.getAttribute?.('contenteditable') === 'false'
+  );
 }
