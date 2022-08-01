@@ -97,3 +97,92 @@ export function judgeNodeCannotEditable(ele, nodeName = 'BR') {
       ele?.nodeName === nodeName)
   );
 }
+
+/**
+ * 删除指定选区的的html
+ * @param {number} startPos 选区开始位置
+ * @param {number} endPos 选区开始位置
+ * @param {Node} anchorNode 选区开始节点
+ * @param {Node} focusNode 选区结束节点
+ * @returns {boolean} 是否删除成功
+ */
+export function deleteHtmlByRange(
+  startPos = -1,
+  endPos = -1,
+  anchorNode = null,
+  focusNode = null
+) {
+  let sel = window.getSelection();
+  let range = document.createRange();
+  if (!range || !sel) return false;
+
+  anchorNode = anchorNode || sel.anchorNode;
+  focusNode = focusNode || sel.focusNode;
+
+  if (!anchorNode || !focusNode) return false;
+
+  if (startPos < 0 || endPos < 0) {
+    startPos = sel.anchorOffset;
+    endPos = sel.focusOffset;
+  }
+
+  range.setStart(anchorNode, startPos);
+  range.setEnd(focusNode, endPos);
+  range.deleteContents();
+  range.detach();
+
+  return true;
+}
+
+/**
+ * 在选区内插入HTML
+ * @param {string|HTMLElement} content 要插入的内容
+ * @param {number} startPos 选区开始位置
+ * @param {number} endPos 选区开始位置
+ * @param {Node} anchorNode 选区开始节点
+ * @param {Node} focusNode 选区结束节点
+ * @returns {boolean} 是否插入成功
+ */
+export function insertHtmlByRange(
+  content,
+  startPos = -1,
+  endPos = -1,
+  anchorNode = null,
+  focusNode = null
+) {
+  // 先执行删除删除
+  deleteHtmlByRange(startPos, endPos, anchorNode, focusNode);
+
+  let sel = window.getSelection();
+  // 必须从selection拷贝一个range，不能在document.createRange创建的range对象中执行插入操作（insertNode）
+  let range = sel.getRangeAt(0).cloneRange();
+
+  if (!range) return false;
+
+  let curNode;
+  let lastNode;
+  if (typeof content === 'string') {
+    let el = document.createElement('div');
+    el.innerHTML = content;
+    let frag = document.createDocumentFragment();
+    while ((curNode = el.firstChild)) {
+      lastNode = frag.appendChild(curNode);
+    }
+    range.insertNode(frag);
+  } else {
+    lastNode = content;
+    range.insertNode(lastNode);
+  }
+
+  if (lastNode) {
+    range = range.cloneRange();
+    range.setStartAfter(lastNode);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    return true;
+  }
+
+  return false;
+}

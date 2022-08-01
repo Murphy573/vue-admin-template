@@ -2,7 +2,8 @@
   <div
     v-clickoutside:[clickoutsideMergedKey]="handleClickoutside"
     :class="genWrapperStyle.class"
-    :style="genWrapperStyle.style">
+    :style="genWrapperStyle.style"
+    @contextmenu.prevent>
     <div
       ref="richtextRef"
       class="my-richtext"
@@ -33,6 +34,8 @@ import {
   clearZeroWidthSpace,
   ZeroWidthSpaceChar,
   judgeNodeCannotEditable,
+  insertHtmlByRange,
+  deleteHtmlByRange,
 } from './util';
 import { isPlainObj } from '@/utils/common.js';
 
@@ -555,7 +558,7 @@ export default {
         // 拿到记录的对象
         const lastRange = this.lastRangeRecord;
         // 删除关键字
-        this.deleteHtml(
+        deleteHtmlByRange(
           lastRange.startOffset - 1 > 0 ? lastRange.startOffset - 1 : 0,
           lastRange.endOffset
         );
@@ -861,7 +864,7 @@ export default {
         if (selection && selection.rangeCount > 0) {
           const range = selection.getRangeAt(0);
           const startOffset = range?.startOffset || 0;
-          this.deleteHtml(
+          deleteHtmlByRange(
             startOffset - contentLength + this.maxlength,
             startOffset
           );
@@ -935,19 +938,6 @@ export default {
     },
 
     /**
-     * 删除html
-     */
-    deleteHtml(startPos, endPos, node = null) {
-      let sel = window.getSelection();
-      let range = document.createRange();
-      if (!range || !sel) return;
-      let anchorNode = node ? node : sel.anchorNode;
-      range.setStart(anchorNode, startPos);
-      range.setEnd(anchorNode, endPos);
-      range.deleteContents();
-    },
-
-    /**
      * 在选区内插入HTML
      * @param {string|HTMLElement} content 要插入的内容
      * @param {number} startPos 选区开始位置
@@ -964,46 +954,7 @@ export default {
     ) {
       this.setRichtextEditorFocus();
 
-      let sel = window.getSelection();
-      let range = document.createRange();
-      if (!range || !sel) return;
-
-      anchorNode = anchorNode || sel.anchorNode;
-      focusNode = focusNode || sel.focusNode;
-
-      if (!anchorNode) return;
-
-      if (startPos < 0 || endPos < 0) {
-        startPos = sel.anchorOffset;
-        endPos = sel.focusOffset;
-      }
-
-      range.setStart(anchorNode, startPos);
-      range.setEnd(focusNode, endPos);
-      range.deleteContents();
-
-      let curNode;
-      let lastNode;
-      if (typeof content === 'string') {
-        let el = document.createElement('div');
-        el.innerHTML = content;
-        let frag = document.createDocumentFragment();
-        while ((curNode = el.firstChild)) {
-          lastNode = frag.appendChild(curNode);
-        }
-        range.insertNode(frag);
-      } else {
-        lastNode = content;
-        range.insertNode(lastNode);
-      }
-
-      if (lastNode) {
-        range = range.cloneRange();
-        range.setStartAfter(lastNode);
-        range.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }
+      insertHtmlByRange(content, startPos, endPos, anchorNode, focusNode);
 
       this.setLastRangeRecord();
     },
@@ -1011,9 +962,8 @@ export default {
     // 计算滚动高度
     caculateSrcollHeight() {
       const scrollEle = this.richtextEditor;
-      if (!scrollEle) {
-        return;
-      }
+      if (!scrollEle) return;
+
       const scrollRect = scrollEle.getBoundingClientRect();
       const selection = window.getSelection();
       if (selection && this.lastRangeRecord) {
