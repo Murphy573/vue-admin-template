@@ -1,5 +1,8 @@
 <template>
-  <div :class="genWrapperStyle.class" :style="genWrapperStyle.style">
+  <div
+    v-clickoutside:[clickoutsideMergedKey]="handleClickoutside"
+    :class="genWrapperStyle.class"
+    :style="genWrapperStyle.style">
     <div
       ref="richtextRef"
       class="my-richtext"
@@ -97,6 +100,11 @@ export default {
     showCount: {
       type: Boolean,
       default: true,
+    },
+    // 点击元素外合并关键字：该参数用于解决点击目标元素外关闭触发或者外部按钮触发的场景
+    clickoutsideMergedKey: {
+      type: String,
+      default: 'RichtextCore',
     },
   },
 
@@ -267,7 +275,7 @@ export default {
         sel.removeAllRanges();
         // 先复原记录的选区
         sel.addRange(this.lastRangeRecord);
-        this.insertContentOnCaret({ content: placeholderNode });
+        this.insertHtml(placeholderNode);
         // 记录最新选区
         this.setLastRangeRecord();
       }
@@ -316,6 +324,7 @@ export default {
 
     // 主动获得编辑器焦点
     setRichtextEditorFocus() {
+      if (this.richtextEditorOptions.isFocus) return;
       this.richtextEditor?.focus();
       this.richtextEditorOptions.isFocus = true;
     },
@@ -402,7 +411,7 @@ export default {
       // 是否追加0宽占位符
       if (insertEmpty) {
         const emptyNode = document.createTextNode(ZeroWidthSpaceChar);
-        this.insertContentOnCaret({ content: emptyNode });
+        this.insertHtml(emptyNode);
         this.setRichtextEditorFocus();
       }
     },
@@ -484,14 +493,14 @@ export default {
           event.preventDefault();
         } else if (key === 'Enter') {
           event.preventDefault();
-          // ctrl键提交
-          // if (event.metaKey || event.ctrlKey) {
-          //   if (this.editor?.innerHTML && !this.exceedMax) {
-          //     this.$emit('on-enter', event);
-          //     this.clearEditor();
-          //   }
-          // } else {
-          // }
+          // ctrl+enter键事件拦截
+          if (event.metaKey || event.ctrlKey) {
+            if (this.richtextEditor?.innerHTML && !this.isExceedMaxlength) {
+              this.$emit('on-enter', event);
+            }
+            return;
+          }
+
           if (!this.isCanLF) return;
           // 换行
           const selection = window.getSelection();
@@ -521,7 +530,7 @@ export default {
       if (!selection?.isCollapsed) return;
       this.setLastRangeRecord();
       if (key === 'Escape' && !this.isTriggerEditing) {
-        this.$emit('esc', event);
+        this.$emit('on-escape', event);
       } else if (
         !this.genAllIdetifiers.includes(key) &&
         !this.isTriggerEditing
@@ -597,8 +606,8 @@ export default {
     },
 
     /**
-     * 当删除占位符号时，连带不可编辑节点一起删除
-     * 删除处理： 遍历子节点
+     * #### 当删除占位符号时，连带不可编辑节点一起删除
+     * ##### 删除处理： 遍历子节点
      *  - 如果当前节点是不可编辑节点：则看前一个节点是否是不可编辑节点，如果不可编辑，则将前一个节点删掉
      *  - 如果当前节点是可编辑节点：则看前一个节点是否是不可编辑节点
      *      - 如果前一个节点不可编辑，且当前节点首字符不是占位符，则将前一个节点删掉
@@ -888,22 +897,17 @@ export default {
       this.richtextEditor?.blur();
     },
 
+    // 清空富文本内容
+    clearRichtextContent() {
+      if (!this.richtextEditor) return;
+      this.richtextEditor.innerHTML = '';
+    },
+
     // 记录上一次的选区位置
     setLastRangeRecord() {
       let selection = window.getSelection();
       // 保存最后的range对象
       this.lastRangeRecord = Object.freeze(selection?.getRangeAt(0));
-    },
-
-    // 在光标处插入内容
-    insertContentOnCaret({ content = '' }) {
-      this.setRichtextEditorFocus();
-
-      if (typeof content === 'string') {
-        content = document.createTextNode(content);
-      }
-
-      this.insertHtml(content);
     },
 
     // 同步光标在容器内的坐标
@@ -958,6 +962,8 @@ export default {
       anchorNode = null,
       focusNode = null
     ) {
+      this.setRichtextEditorFocus();
+
       let sel = window.getSelection();
       let range = document.createRange();
       if (!range || !sel) return;

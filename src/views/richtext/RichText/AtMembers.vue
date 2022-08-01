@@ -4,7 +4,7 @@
     ref="atMembers"
     class="at-members"
     :style="genDisplayStyle"
-    v-clickoutside:WeiboRichtext
+    v-clickoutside:RichtextCore
     @click.stop>
     <ul>
       <li

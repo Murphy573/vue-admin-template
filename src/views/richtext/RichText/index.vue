@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="richtext-container"
-    v-clickoutside:WeiboRichtext="handleClickoutside">
+  <div v-clickoutside:RichtextCore class="richtext-container">
     <RichtextEditorCore
       ref="richtextEditorCore"
       :identifierOptions="identifierOptions"
@@ -168,10 +166,6 @@ export default {
       } else if (identifier === '#') {
         this.superTopicsOptions.visible = false;
       }
-    },
-    // 点击容器外
-    handleClickoutside() {
-      this.richtextEditorCore.handleClickoutside();
     },
     handleSyncCaretPos(pos) {
       this.caretPos = pos;
