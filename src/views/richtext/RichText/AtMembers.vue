@@ -4,7 +4,6 @@
     ref="atMembers"
     class="at-members"
     :style="genDisplayStyle"
-    v-clickoutside:RichtextCore
     @click.stop>
     <ul>
       <li
