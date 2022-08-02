@@ -81,7 +81,6 @@ export default {
         tag: 'font',
         className: 'editor-node',
         attribute: {},
-        style: {},
       }),
     },
     // 最外层容器的样式
@@ -344,7 +343,6 @@ export default {
         tag = 'span',
         className = 'editor-node',
         attribute = {},
-        style = {},
       } = currentIndentifierOption.highlightTagOption ||
       this.highlightTagOption;
 
@@ -359,12 +357,6 @@ export default {
           ele.setAttribute(key, attribute[key]);
         });
       }
-      // 设置样式
-      if (style && isPlainObj(style)) {
-        Object.keys(style).forEach((key) => {
-          ele.style.setProperty(key, style[key]);
-        });
-      }
       const { insertPosition = 'start' } = currentIndentifierOption;
 
       // 设置innerText
@@ -376,8 +368,6 @@ export default {
         // 根据配置的标识位置动态拼接
         if (insertPosition === 'start') {
           text = identifier + text;
-        } else if (insertPosition === 'end') {
-          text = text + identifier;
         } else if (insertPosition === 'surround') {
           text = identifier + text + identifier;
         }
