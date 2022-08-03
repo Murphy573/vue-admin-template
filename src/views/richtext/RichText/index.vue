@@ -79,6 +79,7 @@ export default {
       identifierOptions: [
         {
           identifier: '@',
+          hasIdentifierOnCancel: false,
           datasetKey: 'memberInfo',
           insertPosition: 'start',
           contentLength: 2,
@@ -93,6 +94,7 @@ export default {
           identifier: '#',
           datasetKey: 'topicInfo',
           insertPosition: 'surround',
+          hasIdentifierOnCancel: false,
         },
       ],
       wrapperStyle: {

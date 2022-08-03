@@ -83,6 +83,8 @@ export const SpaceHolderChar = '\xA0';
 export function clearZeroWidthSpace(str) {
   return str.replace(/[\u200B-\u200D\uFEFF]*/g, '');
 }
+// 可编辑节点允许输入的内容
+export const EditableNodeTextPattern = /^[\u4e00-\u9fa5A-Za-z0-9-_]+$/;
 
 /**
  * 判断节点是否不可编辑

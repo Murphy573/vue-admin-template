@@ -36,8 +36,9 @@ import {
   judgeNodeCannotEditable,
   insertHtmlByRange,
   deleteHtmlByRange,
+  EditableNodeTextPattern,
 } from './util';
-import { isPlainObj } from '@/utils/common.js';
+import { isPlainObj, isDef } from '@/utils/common.js';
 
 const debug = require('debug')('ve:RichtextEditorCore');
 
@@ -208,21 +209,21 @@ export default {
         return;
       }
 
-      const atNode = this.createPlaceholderNode({
+      const placeholderNode = this.createPlaceholderNode({
         identifier,
         canEdit: false,
         content: data[contentKey],
       });
 
-      setElementDataset(atNode, 'identifier', identifier);
+      setElementDataset(placeholderNode, 'identifier', identifier);
       setElementDataset(
-        atNode,
+        placeholderNode,
         currentIndentifierOption.datasetKey,
         JSON.stringify(data)
       );
 
       this.replacePlaceholderNode2Annother({
-        content: atNode,
+        content: placeholderNode,
         insertEmpty: true,
       });
       this.resetRichtextEditorOptions();
@@ -300,14 +301,25 @@ export default {
     // 设置搜索关键词
     setFilterText(text) {
       text = clearZeroWidthSpace(text);
+
       const match = this.richtextEditorOptions.filterTextPattern?.exec?.(
         text || ''
       );
+
+      let filterText = '';
       if (match && match.length === 2) {
-        this.richtextEditorOptions.filterText = match[1];
-        this.$emit('on-identifier-search', match[1]);
+        filterText = match[1];
+        this.richtextEditorOptions.filterText = filterText;
+        this.$emit('on-identifier-search', filterText);
       } else {
-        this.$emit('on-identifier-search', '');
+        this.$emit('on-identifier-search', filterText);
+      }
+
+      // 如果输入的内容不有不允许的字符，退出编辑
+      if (filterText && !EditableNodeTextPattern.test(filterText)) {
+        this.cancelIdentifierSelect(
+          this.richtextEditorOptions.currentIndentifier
+        );
       }
     },
 
@@ -392,10 +404,18 @@ export default {
 
       let newTextNode = content;
       if (typeof content === 'string') {
+        let text = '';
+        // 取消时是否包含标识符
+        const { hasIdentifierOnCancel } =
+          this.genAllIdentifierOptionsMap[identifier];
+
+        if (isDef(hasIdentifierOnCancel) && !hasIdentifierOnCancel) {
+          text = content;
+        } else {
+          text = `${identifier}${content}`;
+        }
         // 消除0宽节点
-        newTextNode = document.createTextNode(
-          clearZeroWidthSpace(`${identifier}${content}`)
-        );
+        newTextNode = document.createTextNode(clearZeroWidthSpace(text));
       }
       if (this.richtextEditor.contains(editingNode)) {
         this.richtextEditor.insertBefore(newTextNode, editingNode);

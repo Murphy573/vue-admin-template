@@ -41,12 +41,14 @@ export default {
 
   data() {
     return {
-      members: new Array(10).fill('').map((v, k) => {
-        return {
-          id: `id${k + 1}`,
-          name: `超话${k + 1}`,
-        };
-      }),
+      // members: new Array(10).fill('').map((v, k) => {
+      //   return {
+      //     id: `id${k + 1}`,
+      //     name: `超话${k + 1}`,
+      //   };
+      // }),
+      members: [],
+      filterTextMembers: [],
       filterredMembers: [],
       currentIndex: 0,
       isCompositionning: false,
@@ -68,9 +70,25 @@ export default {
       handler(newVal) {
         this.currentIndex = 0;
 
-        this.filterredMembers = this.members.filter((m) => {
-          return m.name.includes(newVal?.trim() || '');
-        });
+        if (!newVal) {
+          this.filterTextMembers = [];
+        } else {
+          const exactMatch = this.members.find((item) => item.name === newVal);
+          if (!exactMatch) {
+            this.filterTextMembers = [
+              {
+                id: 'unexsit',
+                name: newVal,
+              },
+            ];
+          }
+        }
+
+        this.filterredMembers = this.members
+          .concat(this.filterTextMembers)
+          .filter((m) => {
+            return m.name.includes(newVal?.trim() || '');
+          });
       },
       immediate: true,
     },
