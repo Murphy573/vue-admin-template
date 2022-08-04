@@ -395,11 +395,11 @@ export default {
       let newTextNode = content;
       if (typeof content === 'string') {
         let text = '';
-        // 取消时是否包含标识符
-        const { hasIdentifierOnCancel } =
+        // 取消时是否保留标识符
+        const { preserveIdentifierOnCancel } =
           this.genAllIdentifierOptionsMap[identifier];
 
-        if (isDef(hasIdentifierOnCancel) && !hasIdentifierOnCancel) {
+        if (isDef(preserveIdentifierOnCancel) && !preserveIdentifierOnCancel) {
           text = content;
         } else {
           text = `${identifier}${content}`;
