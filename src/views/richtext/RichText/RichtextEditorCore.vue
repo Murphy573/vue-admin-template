@@ -395,14 +395,21 @@ export default {
       let newTextNode = content;
       if (typeof content === 'string') {
         let text = '';
-        // 取消时是否保留标识符
-        const { preserveIdentifierOnCancel } =
-          this.genAllIdentifierOptionsMap[identifier];
+        if (identifier) {
+          // 取消时是否保留标识符
+          const { preserveIdentifierOnCancel } =
+            this.genAllIdentifierOptionsMap[identifier];
 
-        if (isDef(preserveIdentifierOnCancel) && !preserveIdentifierOnCancel) {
-          text = content;
+          if (
+            isDef(preserveIdentifierOnCancel) &&
+            !preserveIdentifierOnCancel
+          ) {
+            text = content;
+          } else {
+            text = `${identifier}${content}`;
+          }
         } else {
-          text = `${identifier}${content}`;
+          text = content;
         }
         // 消除0宽节点
         newTextNode = document.createTextNode(clearZeroWidthSpace(text));
