@@ -188,3 +188,22 @@ export function insertHtmlByRange(
 
   return false;
 }
+
+/**
+ * 从文本中提取搜索文本
+ * @param {string} text 待提取的文本
+ * @param {RegExp} pattern 正则
+ * @returns {string}
+ */
+export function extractFilterText(text, pattern) {
+  text = clearZeroWidthSpace(text);
+
+  const match = pattern?.exec?.(text || '');
+
+  let filterText = '';
+  if (match && match.length === 2) {
+    filterText = match[1];
+  }
+
+  return filterText;
+}

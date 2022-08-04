@@ -37,6 +37,7 @@ import {
   insertHtmlByRange,
   deleteHtmlByRange,
   EditableNodeTextPattern,
+  extractFilterText,
 } from './util';
 import { isPlainObj, isDef } from '@/utils/common.js';
 
@@ -300,27 +301,16 @@ export default {
 
     // 设置搜索关键词
     setFilterText(text) {
-      text = clearZeroWidthSpace(text);
-
-      const match = this.richtextEditorOptions.filterTextPattern?.exec?.(
-        text || ''
-      );
-
       let filterText = '';
-      if (match && match.length === 2) {
-        filterText = match[1];
-        this.richtextEditorOptions.filterText = filterText;
-        this.$emit('on-identifier-search', filterText);
-      } else {
-        this.$emit('on-identifier-search', filterText);
-      }
-
-      // 如果输入的内容不有不允许的字符，退出编辑
-      if (filterText && !EditableNodeTextPattern.test(filterText)) {
-        this.cancelIdentifierSelect(
-          this.richtextEditorOptions.currentIndentifier
+      if (text && text.length) {
+        filterText = extractFilterText(
+          text,
+          this.richtextEditorOptions.filterTextPattern
         );
       }
+
+      this.richtextEditorOptions.filterText = filterText;
+      this.$emit('on-identifier-search', filterText);
     },
 
     // 重置编辑器记录数据
@@ -383,8 +373,8 @@ export default {
         } else if (insertPosition === 'surround') {
           text = identifier + text + identifier;
         }
-        // 不可编辑前方插入空格
-        text = ` ${text} `;
+        // 不可编辑后方插入空格
+        text = `${text} `;
       }
 
       const textNode = document.createTextNode(text);
@@ -590,7 +580,7 @@ export default {
         // 输入法输入中不走下面的逻辑
         if (this.compositionOptions.isInputing) return;
 
-        // 如果是@编辑状态，则删除分隔符时删除整个编辑区域
+        // 如果编辑状态，则删除分隔符时删除退出编辑
         if (this.deleteKeys.includes(key)) {
           const anchorNode = selection.anchorNode;
           const firstSperator =
@@ -613,8 +603,23 @@ export default {
           return;
         }
 
+        const textContent = selection?.['anchorNode']?.textContent || '';
+        const filterText = extractFilterText(
+          textContent,
+          this.richtextEditorOptions.filterTextPattern
+        );
+
+        // 如果输入的内容不有不允许的字符，退出编辑
+        if (filterText && !EditableNodeTextPattern.test(filterText)) {
+          this.richtextEditorOptions.filterText = filterText;
+          this.cancelIdentifierSelect(
+            this.richtextEditorOptions.currentIndentifier
+          );
+          return;
+        }
+
         // 设置搜索
-        this.setFilterText(selection?.['anchorNode']?.textContent || '');
+        this.setFilterText(textContent);
       }
     },
 
