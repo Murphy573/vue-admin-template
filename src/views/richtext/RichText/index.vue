@@ -59,7 +59,7 @@ export default {
     },
     maxlength: {
       type: Number,
-      default: 1000,
+      default: 5,
     },
   },
 
@@ -79,10 +79,9 @@ export default {
       identifierOptions: [
         {
           identifier: '@',
-          preserveIdentifierOnCancel: false,
+          preserveIdentifierOnCancel: true,
           datasetKey: 'memberInfo',
           insertPosition: 'start',
-          contentLength: 2,
           highlightTagOption: {
             tag: 'span',
             attribute: {

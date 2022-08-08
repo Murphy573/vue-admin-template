@@ -28,7 +28,6 @@
 <script>
 import {
   setElementDataset,
-  getElementDataset,
   getCaretCoordsOfDocument,
   moveCaret2StartOrEnd,
   clearZeroWidthSpace,
@@ -38,8 +37,10 @@ import {
   deleteHtmlByRange,
   EditableNodeTextPattern,
   extractFilterText,
+  formatContent,
+  IdentiferFlagOnEle,
 } from './util';
-import { isPlainObj, isDef } from '@/utils/common.js';
+import { isPlainObj, isDef, isNumber } from '@/utils/common.js';
 
 const debug = require('debug')('ve:RichtextEditorCore');
 
@@ -161,8 +162,10 @@ export default {
     genAllIdentifierOptionsMap() {
       const map = this.identifierOptions.reduce((prev, next) => {
         const item = { ...next };
-        // 不传则为1
-        item.contentLength = item.contentLength || 1;
+        // 不传则为节点内容长度
+        item.contentLength = isNumber(item.contentLength)
+          ? item.contentLength
+          : undefined;
 
         prev[item.identifier] = item;
         return prev;
@@ -196,6 +199,10 @@ export default {
         style: this.countStyle.style || {},
       };
     },
+    // 按下哪些键取消关键词触发的选中
+    genCancelIdentifierSelectKeys() {
+      return [' ', 'ArrowLeft', 'ArrowRight', ...this.genAllIdetifiers];
+    },
   },
 
   methods: {
@@ -216,7 +223,7 @@ export default {
         content: data[contentKey],
       });
 
-      setElementDataset(placeholderNode, 'identifier', identifier);
+      setElementDataset(placeholderNode, IdentiferFlagOnEle, identifier);
       setElementDataset(
         placeholderNode,
         currentIndentifierOption.datasetKey,
@@ -481,7 +488,11 @@ export default {
     },
 
     handleKeydown(event) {
-      const { key } = event;
+      const { key, repeat } = event;
+      if (repeat) {
+        event.preventDefault();
+        return;
+      }
       // 当触发了关键字
       if (this.isTriggerEditing) {
         // 输入法输入不走下面的逻辑
@@ -490,16 +501,28 @@ export default {
         if (this.preventDefaultKeysOnPanelVisible.includes(key)) {
           event.preventDefault();
         } else {
-          // 当按下配置的关键字按键或者空格，完成本次输入
-          if (this.genAllIdetifiers.includes(key) || key === ' ') {
+          // 当按下配置的关键字按键或者空格，完取消本次输入
+          if (
+            this.genCancelIdentifierSelectKeys.includes(key) ||
+            !EditableNodeTextPattern.test(key)
+          ) {
             this.cancelIdentifierSelect(
               this.richtextEditorOptions.currentIndentifier
             );
+            // 转换输入内容
+            this.genEditorInputContent();
+
+            if (this.isExceedMaxlength) {
+              event.preventDefault();
+            }
           }
         }
       } else {
-        // 达到最大输入长度，且不是删除，禁止输入
-        if (this.isExceedMaxlength && !this.deleteKeys.includes(key)) {
+        // 达到最大输入长度，且不是删除和方向键，禁止输入
+        if (
+          this.isExceedMaxlength &&
+          ![...this.deleteKeys, ...this.arrowKeys].includes(key)
+        ) {
           event.preventDefault();
         } else if (key === 'Enter') {
           event.preventDefault();
@@ -550,16 +573,14 @@ export default {
         // 当删除占位符号时，连带不可编辑节点一起删除
         if (this.deleteKeys.includes(key)) {
           this.handleDelete();
-        }
-
-        // 方向键光标处理
-        if (this.arrowKeys.includes(key)) {
+          this.genEditorInputContent();
+        } else if (this.arrowKeys.includes(key)) {
+          // 方向键光标处理
           this.handleArrowKeyEvent(key);
+        } else if (!this.isExceedMaxlength) {
+          // 转换输入内容
+          this.genEditorInputContent();
         }
-
-        // 转换输入内容
-        this.genEditorInputContent();
-        return;
       } else if (this.genAllIdetifiers.includes(key)) {
         if (this.isExceedMaxlength) return;
         // 拿到记录的对象
@@ -598,33 +619,13 @@ export default {
             this.cancelIdentifierSelect(
               this.richtextEditorOptions.currentIndentifier
             );
+            // 转换输入内容
+            this.genEditorInputContent();
             return;
           }
         }
 
-        // 左右移动光标
-        if (['ArrowLeft', 'ArrowRight'].includes(key)) {
-          this.cancelIdentifierSelect(
-            this.richtextEditorOptions.currentIndentifier
-          );
-          return;
-        }
-
         const textContent = selection?.['anchorNode']?.textContent || '';
-        const filterText = extractFilterText(
-          textContent,
-          this.richtextEditorOptions.filterTextPattern
-        );
-
-        // 如果输入的内容不有不允许的字符，退出编辑
-        if (filterText && !EditableNodeTextPattern.test(filterText)) {
-          this.richtextEditorOptions.filterText = filterText;
-          this.cancelIdentifierSelect(
-            this.richtextEditorOptions.currentIndentifier
-          );
-          return;
-        }
-
         // 设置搜索
         this.setFilterText(textContent);
       }
@@ -648,13 +649,13 @@ export default {
       childNodes.forEach((curNode, index) => {
         const isCurNodeCannotEditable = judgeNodeCannotEditable(curNode);
         const curNodeTextContent = curNode.textContent || '';
-        const isCurNodeFisrtCharIsZeroWidthSpace =
+        const isCurNodeFirstCharIsZeroWidthSpace =
           /^[\u200B-\u200D\uFEFF]$/g.test(curNodeTextContent.charAt(0));
 
         if (index === 0) {
           if (!isCurNodeCannotEditable) {
             // 如果当前节点包含0宽占位节点，才会进行清除操作，解决向后删除时光标闪烁问题
-            if (isCurNodeFisrtCharIsZeroWidthSpace) {
+            if (isCurNodeFirstCharIsZeroWidthSpace) {
               curNode.textContent = clearZeroWidthSpace(curNodeTextContent);
             }
           } else {
@@ -675,12 +676,12 @@ export default {
           }
         } else {
           if (isPrevNodeCannotEditable) {
-            if (!isCurNodeFisrtCharIsZeroWidthSpace) {
+            if (!isCurNodeFirstCharIsZeroWidthSpace) {
               willDeleteNodes.push(prevNode);
             }
           } else {
             // 如果当前节点包含0宽占位节点，才会进行清除操作，解决向后删除时光标闪烁问题
-            if (isCurNodeFisrtCharIsZeroWidthSpace) {
+            if (isCurNodeFirstCharIsZeroWidthSpace) {
               curNode.textContent = clearZeroWidthSpace(curNodeTextContent);
             }
           }
@@ -829,80 +830,161 @@ export default {
       // 编辑器未聚焦时
       if (!this.richtextEditorOptions.isFocus) return;
 
-      const texts = [];
-      let contentLength = 0;
-      let hasIdentifierNode = false;
+      const allChildNodes = [...this.richtextEditor.childNodes];
 
-      const childNodes = [...this.richtextEditor.childNodes].filter((item) => {
+      const filterredValidChildNodes = allChildNodes.filter((item) => {
         return item.textContent || item.nodeName === 'BR';
       });
 
-      const content = childNodes
-        .map((item) => {
-          if (item && item.nodeName === '#text') {
-            const textContent = clearZeroWidthSpace(
-              item?.textContent?.trim() || ''
-            );
-            texts.push(textContent);
-            contentLength += textContent.length || 0;
-            return {
-              type: 'text',
-              content: textContent,
-            };
-          } else if (item.nodeName === 'BR') {
-            texts.push('\n');
-            contentLength += 1;
-            return {
-              type: 'text',
-              content: '\n',
-            };
+      const { allContentLength, hasIdentifierNode, texts, formattedContent } =
+        formatContent(
+          filterredValidChildNodes,
+          this.genAllIdentifierOptionsMap
+        );
+
+      // console.log(formattedContent);
+
+      /**
+       * 删除逻辑：从后往前删除
+       *  1. 确定需要删除的长度
+       *  2. 从后往前遍历删除
+       */
+      if (allContentLength > this.maxlength) {
+        // 至少需要删除多少个长度
+        let needDeleteContentLength = allContentLength - this.maxlength;
+        // 即将删除的长度，因为可能会删除不可编辑节点
+        let willDeleteContentLength = 0;
+
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+          let startPos = -1;
+          let endPos = -1;
+          let startNode = null;
+          let endNode = null;
+          let isParentNodeSelection = false;
+          if (sel.anchorNode === this.richtextEditor) {
+            startNode = sel.anchorNode;
+            endNode = sel.focusNode;
+            endPos = sel.focusOffset;
+            isParentNodeSelection = true;
           } else {
-            const identifier = getElementDataset(item, 'identifier');
-            if (identifier) {
-              hasIdentifierNode = true;
-              const { datasetKey, contentLength: identifierContentLength } =
-                this.genAllIdentifierOptionsMap[identifier];
-              const identifierDataInfo = JSON.parse(
-                getElementDataset(item, datasetKey)
-              );
-              contentLength += identifierContentLength;
-              return {
-                type: identifier,
-                content: identifierDataInfo,
-              };
-            }
-            return { type: 'unknown', content: 'unknown' };
+            const range = sel.getRangeAt(0);
+            endNode = range?.endContainer;
+            endPos = range?.endOffset || 0;
           }
-        })
-        .filter((item) => {
-          // 过滤掉unknown和content为空串的
-          const isUnknown = item.type === 'unknown';
-          const noContentText = item.type === 'text' && item.content === '';
-          return !isUnknown && !noContentText;
-        });
 
-      if (contentLength > this.maxlength) {
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
-          const startOffset = range?.startOffset || 0;
-          deleteHtmlByRange(
-            startOffset - contentLength + this.maxlength,
-            startOffset
+          let curCaretInChildsIndex = allChildNodes.findIndex(
+            (node) =>
+              node ===
+              (isParentNodeSelection ? allChildNodes[endPos - 1] : endNode)
           );
-        }
-        this.richtextEditorOptions.contentLength = this.maxlength;
-      } else {
-        this.richtextEditorOptions.contentLength = contentLength;
-      }
 
-      // eslint-disable-next-line no-console
-      console.log('content', content);
+          while (curCaretInChildsIndex > -1) {
+            let curNode = allChildNodes[curCaretInChildsIndex];
+            const curNodeInFilterredIndex = filterredValidChildNodes.findIndex(
+              (node) => node === curNode
+            );
+            if (curNodeInFilterredIndex < 0) continue;
+            // 删除到第0个节点或者即将删除长度>= 需要删除的长度
+            if (!curNode || willDeleteContentLength >= needDeleteContentLength)
+              break;
+
+            const isCurNodeCannotEditable = judgeNodeCannotEditable(curNode);
+            const curNodeFormattedContent =
+              formattedContent[curNodeInFilterredIndex];
+
+            if (isParentNodeSelection) {
+              startPos = curCaretInChildsIndex;
+              willDeleteContentLength += curNodeFormattedContent.contentLength;
+              formattedContent.splice(curNodeInFilterredIndex, 1);
+            } else {
+              // 不可编辑节点
+              if (isCurNodeCannotEditable) {
+                startNode = curNode;
+                startPos = 0;
+                willDeleteContentLength +=
+                  curNodeFormattedContent.contentLength;
+                formattedContent.splice(curNodeInFilterredIndex, 1);
+              } else {
+                const curNodeTextContent = curNode.textContent;
+                const isCurNodeFirstCharIsZeroWidthSpace =
+                  /^[\u200B-\u200D\uFEFF]$/g.test(curNodeTextContent.charAt(0));
+
+                // 当前节点可以删除的长度，从节点内容起点开始
+                let canDeleteLength = 0;
+                if (curNode === startNode) {
+                  canDeleteLength = isCurNodeFirstCharIsZeroWidthSpace
+                    ? startPos - 1
+                    : startPos;
+                } else {
+                  canDeleteLength = curNodeFormattedContent.contentLength;
+                }
+
+                // 前半部分
+                const curNodeContent = curNodeFormattedContent.content;
+                let firstHalfContent = curNodeContent.slice(0, canDeleteLength);
+                // 后半部分
+                let secondHalfContent = curNodeContent.slice(canDeleteLength);
+
+                if (
+                  canDeleteLength + willDeleteContentLength >=
+                  needDeleteContentLength
+                ) {
+                  // 开始删除
+                  let deletedFirstHalfContent = firstHalfContent.slice(
+                    0,
+                    -(needDeleteContentLength - willDeleteContentLength)
+                  );
+
+                  startPos =
+                    deletedFirstHalfContent.length +
+                    (isCurNodeFirstCharIsZeroWidthSpace ? 1 : 0);
+
+                  curNodeFormattedContent.content =
+                    deletedFirstHalfContent + secondHalfContent;
+                  curNodeFormattedContent.contentLength =
+                    curNodeFormattedContent.content.length;
+
+                  willDeleteContentLength +=
+                    firstHalfContent.length - deletedFirstHalfContent.length;
+                } else {
+                  startPos = 0;
+                  curNodeFormattedContent.content = secondHalfContent;
+                  curNodeFormattedContent.contentLength =
+                    secondHalfContent.length;
+                  willDeleteContentLength += canDeleteLength;
+                }
+
+                startNode = curNode;
+              }
+            }
+
+            curCaretInChildsIndex--;
+          }
+
+          // console.log('delete-startPos', startPos);
+          // console.log('delete-endPos', endPos);
+          // console.log('delete-startNode', startNode);
+          // console.log('delete-endNode', endNode);
+          deleteHtmlByRange(startPos, endPos, startNode, endNode);
+        }
+
+        this.richtextEditorOptions.contentLength =
+          allContentLength - willDeleteContentLength;
+      } else {
+        this.richtextEditorOptions.contentLength = allContentLength;
+      }
 
       // 向外发送的数据
       const emitData = {
         contentLength: this.richtextEditorOptions.contentLength,
-        contentData: !hasIdentifierNode ? texts.join('').trim() : content,
+        contentData: !hasIdentifierNode
+          ? texts.join('').trim()
+          : formattedContent.filter((item) => {
+              // 过滤掉content为空串的
+              const noContentText = item.type === 'text' && item.content === '';
+              return !noContentText;
+            }),
       };
 
       this.$emit('on-input-change', emitData);

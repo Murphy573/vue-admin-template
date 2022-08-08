@@ -75,6 +75,8 @@ export function moveCaret2StartOrEnd(el, type = 'start') {
   }
 }
 
+// 节点上标识符标记词
+export const IdentiferFlagOnEle = 'identifier';
 // 0宽字符
 export const ZeroWidthSpaceChar = '\u200B';
 // 空格字符
@@ -104,32 +106,32 @@ export function judgeNodeCannotEditable(ele, nodeName = 'BR') {
  * 删除指定选区的的html
  * @param {number} startPos 选区开始位置
  * @param {number} endPos 选区开始位置
- * @param {Node} anchorNode 选区开始节点
- * @param {Node} focusNode 选区结束节点
+ * @param {Node} startNode 选区开始节点
+ * @param {Node} endNode 选区结束节点
  * @returns {boolean} 是否删除成功
  */
 export function deleteHtmlByRange(
   startPos = -1,
   endPos = -1,
-  anchorNode = null,
-  focusNode = null
+  startNode = null,
+  endNode = null
 ) {
   let sel = window.getSelection();
   let range = document.createRange();
   if (!range || !sel) return false;
 
-  anchorNode = anchorNode || sel.anchorNode;
-  focusNode = focusNode || sel.focusNode;
+  startNode = startNode || sel.anchorNode;
+  endNode = endNode || sel.focusNode;
 
-  if (!anchorNode || !focusNode) return false;
+  if (!startNode || !endNode) return false;
 
   if (startPos < 0 || endPos < 0) {
     startPos = sel.anchorOffset;
     endPos = sel.focusOffset;
   }
 
-  range.setStart(anchorNode, startPos);
-  range.setEnd(focusNode, endPos);
+  range.setStart(startNode, startPos);
+  range.setEnd(endNode, endPos);
   range.deleteContents();
   range.detach();
 
@@ -141,19 +143,19 @@ export function deleteHtmlByRange(
  * @param {string|HTMLElement} content 要插入的内容
  * @param {number} startPos 选区开始位置
  * @param {number} endPos 选区开始位置
- * @param {Node} anchorNode 选区开始节点
- * @param {Node} focusNode 选区结束节点
+ * @param {Node} startNode 选区开始节点
+ * @param {Node} endNode 选区结束节点
  * @returns {boolean} 是否插入成功
  */
 export function insertHtmlByRange(
   content,
   startPos = -1,
   endPos = -1,
-  anchorNode = null,
-  focusNode = null
+  startNode = null,
+  endNode = null
 ) {
   // 先执行删除删除
-  deleteHtmlByRange(startPos, endPos, anchorNode, focusNode);
+  deleteHtmlByRange(startPos, endPos, startNode, endNode);
 
   let sel = window.getSelection();
   // 必须从selection拷贝一个range，不能在document.createRange创建的range对象中执行插入操作（insertNode）
@@ -206,4 +208,73 @@ export function extractFilterText(text, pattern) {
   }
 
   return filterText;
+}
+
+export function formatContent(childNodes = [], identifierOptionsMap = {}) {
+  const texts = [];
+  let allContentLength = 0;
+  let hasIdentifierNode = false;
+
+  const formattedContent = childNodes.map((item) => {
+    if (item && item.nodeName === '#text') {
+      const textContent = clearZeroWidthSpace(item?.textContent || '');
+      texts.push(textContent);
+      allContentLength += textContent.length || 0;
+      return {
+        type: 'text',
+        content: textContent,
+        contentLength: textContent.length || 0,
+      };
+    } else if (item.nodeName === 'BR') {
+      texts.push('\n');
+      allContentLength += 1;
+      return {
+        type: 'text',
+        content: '\n',
+        contentLength: 1,
+      };
+    } else {
+      const identifier = getElementDataset(item, IdentiferFlagOnEle);
+      if (identifier) {
+        hasIdentifierNode = true;
+        const { datasetKey, contentLength: identifierContentLength } =
+          identifierOptionsMap[identifier];
+        const identifierDataInfo = JSON.parse(
+          getElementDataset(item, datasetKey)
+        );
+
+        let _identifierContentLength = 0;
+        if (identifierContentLength) {
+          _identifierContentLength = identifierContentLength;
+        } else {
+          const textContent = clearZeroWidthSpace(item?.textContent || '');
+          _identifierContentLength = textContent.length || 0;
+        }
+        allContentLength += _identifierContentLength;
+
+        return {
+          type: identifier,
+          content: identifierDataInfo,
+          contentLength: _identifierContentLength,
+        };
+      }
+
+      // 未知节点
+      let _unknownContentLength =
+        clearZeroWidthSpace(item?.textContent || '').length || 0;
+      allContentLength += _unknownContentLength;
+      return {
+        type: 'unknown',
+        content: 'unknown',
+        contentLength: _unknownContentLength,
+      };
+    }
+  });
+
+  return {
+    formattedContent,
+    allContentLength,
+    hasIdentifierNode,
+    texts,
+  };
 }
