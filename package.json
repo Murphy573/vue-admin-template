@@ -4,6 +4,7 @@
   "description": "vue管理端模板--带tag",
   "author": "lipfd@yonyou.com",
   "private": true,
+  "homepage": "https://murphy573.github.io/vue-admin-template",
   "scripts": {
     "start": "vue-cli-service serve",
     "lint": "vue-cli-service lint",
