@@ -192,8 +192,8 @@ export function insertHtmlByRange(
 }
 
 /**
- * 从文本中提取搜索文本
- * @param {string} text 待提取的文本
+ * 从字符串中提取搜索文本
+ * @param {string} text 待提取的字符串
  * @param {RegExp} pattern 正则
  * @returns {string}
  */
@@ -210,24 +210,34 @@ export function extractFilterText(text, pattern) {
   return filterText;
 }
 
-export function formatContent(childNodes = [], identifierOptionsMap = {}) {
-  const texts = [];
-  let allContentLength = 0;
-  let hasIdentifierNode = false;
+/**
+ * 转换richtext节点的content
+ * @param {Node[]} childNodes 字节点数组
+ * @param {Object} identifierOptionsMap 标识符映射
+ */
+export function formatRichtextContent(
+  childNodes = [],
+  identifierOptionsMap = {}
+) {
+  const textNodeContents = [];
+  let contentLength = 0;
+  let hasIdentifier = false;
 
-  const formattedContent = childNodes.map((item) => {
+  const formattedContents = childNodes.map((item) => {
     if (item && item.nodeName === '#text') {
+      // 文本节点
       const textContent = clearZeroWidthSpace(item?.textContent || '');
-      texts.push(textContent);
-      allContentLength += textContent.length || 0;
+      textNodeContents.push(textContent);
+      contentLength += textContent.length || 0;
       return {
         type: 'text',
         content: textContent,
         contentLength: textContent.length || 0,
       };
     } else if (item.nodeName === 'BR') {
-      texts.push('\n');
-      allContentLength += 1;
+      // 换行节点
+      textNodeContents.push('\n');
+      contentLength += 1;
       return {
         type: 'text',
         content: '\n',
@@ -235,46 +245,54 @@ export function formatContent(childNodes = [], identifierOptionsMap = {}) {
       };
     } else {
       const identifier = getElementDataset(item, IdentiferFlagOnEle);
-      if (identifier) {
-        hasIdentifierNode = true;
+      // 标识符节点
+      if (identifier && identifierOptionsMap[identifier]) {
+        hasIdentifier = true;
         const { datasetKey, contentLength: identifierContentLength } =
           identifierOptionsMap[identifier];
         const identifierDataInfo = JSON.parse(
           getElementDataset(item, datasetKey)
         );
 
+        const textContent = clearZeroWidthSpace(item?.textContent || '');
         let _identifierContentLength = 0;
         if (identifierContentLength) {
           _identifierContentLength = identifierContentLength;
         } else {
-          const textContent = clearZeroWidthSpace(item?.textContent || '');
           _identifierContentLength = textContent.length || 0;
         }
-        allContentLength += _identifierContentLength;
+        contentLength += _identifierContentLength;
+        textNodeContents.push(textContent);
 
         return {
           type: identifier,
-          content: identifierDataInfo,
+          content: textContent,
+          identifierData: identifierDataInfo,
           contentLength: _identifierContentLength,
         };
       }
 
       // 未知节点
-      let _unknownContentLength =
-        clearZeroWidthSpace(item?.textContent || '').length || 0;
-      allContentLength += _unknownContentLength;
+      const unknownTextContent = clearZeroWidthSpace(item?.textContent || '');
+      let _unknownContentLength = unknownTextContent.length || 0;
+      contentLength += _unknownContentLength;
+      textNodeContents.push(unknownTextContent);
       return {
         type: 'unknown',
-        content: 'unknown',
+        content: unknownTextContent,
         contentLength: _unknownContentLength,
       };
     }
   });
 
   return {
-    formattedContent,
-    allContentLength,
-    hasIdentifierNode,
-    texts,
+    // 转换后的content数组
+    formattedContents,
+    // 内容总长度
+    contentLength,
+    // 是否包含标识符
+    hasIdentifier,
+    // 节点的文本内容数组
+    textNodeContents,
   };
 }

@@ -37,7 +37,7 @@ import {
   deleteHtmlByRange,
   EditableNodeTextPattern,
   extractFilterText,
-  formatContent,
+  formatRichtextContent,
   IdentiferFlagOnEle,
 } from './util';
 import { isPlainObj, isDef, isNumber } from '@/utils/common.js';
@@ -280,8 +280,9 @@ export default {
       if (!this.lastRangeRecord) {
         this.richtextEditor.appendChild(placeholderNode);
         moveCaret2StartOrEnd(this.richtextEditor, 'end');
-      } else {
-        // 有range记录则不是首次编辑
+      }
+      // 有range记录则不是首次编辑
+      else {
         const sel = window.getSelection();
         sel.removeAllRanges();
         // 先复原记录的选区
@@ -438,11 +439,11 @@ export default {
       this.setRichtextEditorFocus();
 
       const target = event.target;
+      const sel = window.getSelection();
+      const range = document.createRange();
       // 如果存在可编辑节点，则始终将光标放在可编辑节点最后一个0宽字符前面：保证删除时判断正常取消触发
       if (this.isTriggerEditing) {
-        const sel = window.getSelection();
         const textNode = this.richtextEditorOptions.editingNode.childNodes[0];
-        const range = document.createRange();
         range.setStart(textNode, textNode?.textContent.length - 1);
         range.collapse(true);
         sel.removeAllRanges();
@@ -451,17 +452,15 @@ export default {
         // 当点击的不可编辑节点
         if (judgeNodeCannotEditable(target)) {
           // 因为手动插入了空节点，所以取下一个
-          let nextEle = target.nextSibling;
-          const sel = window.getSelection();
-          const range = document.createRange();
+          const nextEle = target.nextSibling;
           const newTextNode = document.createTextNode('');
-
           // 下个节点不存在，插入新节点
           if (!nextEle) {
             this.richtextEditor?.appendChild(newTextNode);
             range.setStartBefore(newTextNode);
-          } else {
-            // 下个节点不可编辑，则在下个节点前插入一个text节点
+          }
+          // 下个节点不可编辑，则在下个节点前插入一个text节点
+          else {
             if (judgeNodeCannotEditable(nextEle)) {
               newTextNode.textContent = ZeroWidthSpaceChar;
               this.richtextEditor.insertBefore(newTextNode, nextEle);
@@ -500,8 +499,9 @@ export default {
         // 按下这几个键时，禁用默认行为
         if (this.preventDefaultKeysOnPanelVisible.includes(key)) {
           event.preventDefault();
-        } else {
-          // 当按下配置的关键字按键或者空格，完取消本次输入
+        }
+        // 当按下配置的关键字按键或者空格，完取消本次输入
+        else {
           if (
             this.genCancelIdentifierSelectKeys.includes(key) ||
             !EditableNodeTextPattern.test(key)
@@ -517,8 +517,9 @@ export default {
             }
           }
         }
-      } else {
-        // 达到最大输入长度，且不是删除和方向键，禁止输入
+      }
+      // 达到最大输入长度，且不是删除和方向键，禁止输入
+      else {
         if (
           this.isExceedMaxlength &&
           ![...this.deleteKeys, ...this.arrowKeys].includes(key)
@@ -830,24 +831,32 @@ export default {
       // 编辑器未聚焦时
       if (!this.richtextEditorOptions.isFocus) return;
 
+      // 所有子节点
       const allChildNodes = [...this.richtextEditor.childNodes];
-
+      // 过滤后的有效的子节点
       const filterredValidChildNodes = allChildNodes.filter((item) => {
         return item.textContent || item.nodeName === 'BR';
       });
 
-      const { allContentLength, hasIdentifierNode, texts, formattedContent } =
-        formatContent(
-          filterredValidChildNodes,
-          this.genAllIdentifierOptionsMap
-        );
-
-      // console.log(formattedContent);
+      const {
+        contentLength: allContentLength,
+        hasIdentifier,
+        textNodeContents,
+        formattedContents,
+      } = formatRichtextContent(
+        filterredValidChildNodes,
+        this.genAllIdentifierOptionsMap
+      );
 
       /**
        * 删除逻辑：从后往前删除
        *  1. 确定需要删除的长度
-       *  2. 从后往前遍历删除
+       *  2. 确定删除时的结束node
+       *  3. 遍历删除
+       *    - 如果已经删除的长度满足最大长度，停止遍历
+       *    - 如果当前是不可编辑节点，则将整个节点删除，重置删除起始点
+       *    - 如果当前节点是可编辑节点，则将节点内容按照可删除的长度一分为二进行字符串截取
+       *  4. 得到删除起始点、结束点、起始节点、结束节点，调用delete方法进行删除
        */
       if (allContentLength > this.maxlength) {
         // 至少需要删除多少个长度
@@ -861,6 +870,7 @@ export default {
           let endPos = -1;
           let startNode = null;
           let endNode = null;
+          // 父级选区
           let isParentNodeSelection = false;
           if (sel.anchorNode === this.richtextEditor) {
             startNode = sel.anchorNode;
@@ -880,23 +890,26 @@ export default {
           );
 
           while (curCaretInChildsIndex > -1) {
+            // 即将删除长度 >= 需要删除的长度
+            if (willDeleteContentLength >= needDeleteContentLength) break;
             let curNode = allChildNodes[curCaretInChildsIndex];
             const curNodeInFilterredIndex = filterredValidChildNodes.findIndex(
               (node) => node === curNode
             );
+            // 当前节点在过滤后的有效Node中不存在时
             if (curNodeInFilterredIndex < 0) continue;
-            // 删除到第0个节点或者即将删除长度>= 需要删除的长度
-            if (!curNode || willDeleteContentLength >= needDeleteContentLength)
-              break;
+            // 当遍历完成到没有节点时
+            if (!curNode) break;
 
             const isCurNodeCannotEditable = judgeNodeCannotEditable(curNode);
             const curNodeFormattedContent =
-              formattedContent[curNodeInFilterredIndex];
+              formattedContents[curNodeInFilterredIndex];
 
+            // 当是父级选区，删除整个node
             if (isParentNodeSelection) {
               startPos = curCaretInChildsIndex;
               willDeleteContentLength += curNodeFormattedContent.contentLength;
-              formattedContent.splice(curNodeInFilterredIndex, 1);
+              formattedContents.splice(curNodeInFilterredIndex, 1);
             } else {
               // 不可编辑节点
               if (isCurNodeCannotEditable) {
@@ -904,8 +917,10 @@ export default {
                 startPos = 0;
                 willDeleteContentLength +=
                   curNodeFormattedContent.contentLength;
-                formattedContent.splice(curNodeInFilterredIndex, 1);
-              } else {
+                formattedContents.splice(curNodeInFilterredIndex, 1);
+              }
+              // 可编辑节点
+              else {
                 const curNodeTextContent = curNode.textContent;
                 const isCurNodeFirstCharIsZeroWidthSpace =
                   /^[\u200B-\u200D\uFEFF]$/g.test(curNodeTextContent.charAt(0));
@@ -975,16 +990,19 @@ export default {
         this.richtextEditorOptions.contentLength = allContentLength;
       }
 
+      // eslint-disable-next-line no-console
+      console.log('formattedContents', formattedContents);
+
       // 向外发送的数据
       const emitData = {
         contentLength: this.richtextEditorOptions.contentLength,
-        contentData: !hasIdentifierNode
-          ? texts.join('').trim()
-          : formattedContent.filter((item) => {
-              // 过滤掉content为空串的
-              const noContentText = item.type === 'text' && item.content === '';
-              return !noContentText;
-            }),
+        content: formattedContents.filter((item) => {
+          // 过滤掉content为空串的
+          const noContentText = item.type === 'text' && item.content === '';
+          return !noContentText;
+        }),
+        hasIdentifier: hasIdentifier,
+        textNodeContents: textNodeContents,
       };
 
       this.$emit('on-input-change', emitData);
@@ -992,6 +1010,7 @@ export default {
 
     // 点击容器外：是指包含输入节点、快捷插入节点等之外的节点
     handleClickoutside() {
+      if (!this.richtextEditorOptions.isFocus) return;
       this.cancelIdentifierSelect(
         this.richtextEditorOptions.currentIndentifier,
         false
@@ -1046,19 +1065,19 @@ export default {
      * @param {string|HTMLElement} content 要插入的内容
      * @param {number} startPos 选区开始位置
      * @param {number} endPos 选区开始位置
-     * @param {Node} anchorNode 选区开始节点
-     * @param {Node} focusNode 选区结束节点
+     * @param {Node} startNode 选区开始节点
+     * @param {Node} endNode 选区结束节点
      */
     insertHtml(
       content,
       startPos = -1,
       endPos = -1,
-      anchorNode = null,
-      focusNode = null
+      startNode = null,
+      endNode = null
     ) {
       this.setRichtextEditorFocus();
 
-      insertHtmlByRange(content, startPos, endPos, anchorNode, focusNode);
+      insertHtmlByRange(content, startPos, endPos, startNode, endNode);
 
       this.setLastRangeRecord();
     },

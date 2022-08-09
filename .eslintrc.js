@@ -24,12 +24,13 @@ module.exports = {
     // 优先使用数组和对象解构
     'prefer-destructuring': 0,
     'no-duplicate-imports': 2,
-    // 'brace-style': ['error', 'stroustrup', { allowSingleLine: true }],
     'vue/html-quotes': ['error', 'double'],
     'prefer-const': 0,
     'getter-return': ['error', { allowImplicit: true }],
     'no-empty': ['error', { allowEmptyCatch: true }],
-    'brace-style': ['error', '1tbs', { allowSingleLine: true }],
+    // 'brace-style': ['error', 'stroustrup', { allowSingleLine: true }],
+    // 'brace-style': ['error', '1tbs', { allowSingleLine: true }],
+    'brace-style': 0,
     'no-unused-vars': [
       'error',
       {
