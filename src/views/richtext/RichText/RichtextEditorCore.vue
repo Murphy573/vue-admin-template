@@ -111,6 +111,17 @@ export default {
       type: String,
       default: 'RichtextCore',
     },
+    // 取消标识符触发选择的函数
+    determineCancelIdentifierSelect: {
+      type: Function,
+      default: (pressKey, currentIndentifier, allIdentifiers) => {
+        return (
+          [' ', 'ArrowLeft', 'ArrowRight', ...allIdentifiers].includes(
+            pressKey
+          ) || !EditableNodeTextPattern.test(pressKey)
+        );
+      },
+    },
   },
 
   data() {
@@ -201,7 +212,7 @@ export default {
     },
     // 按下哪些键取消关键词触发的选中
     genCancelIdentifierSelectKeys() {
-      return [' ', 'ArrowLeft', 'ArrowRight', ...this.genAllIdetifiers];
+      return [...this.cancelIdentifierSelectKeys, ...this.genAllIdetifiers];
     },
   },
 
@@ -503,8 +514,11 @@ export default {
         // 当按下配置的关键字按键或者空格，完取消本次输入
         else {
           if (
-            this.genCancelIdentifierSelectKeys.includes(key) ||
-            !EditableNodeTextPattern.test(key)
+            this.determineCancelIdentifierSelect(
+              key,
+              this.richtextEditorOptions.currentIndentifier,
+              this.genAllIdetifiers
+            )
           ) {
             this.cancelIdentifierSelect(
               this.richtextEditorOptions.currentIndentifier
@@ -977,10 +991,6 @@ export default {
             curCaretInChildsIndex--;
           }
 
-          // console.log('delete-startPos', startPos);
-          // console.log('delete-endPos', endPos);
-          // console.log('delete-startNode', startNode);
-          // console.log('delete-endNode', endNode);
           deleteHtmlByRange(startPos, endPos, startNode, endNode);
         }
 
