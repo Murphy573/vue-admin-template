@@ -897,6 +897,7 @@ export default {
             endPos = range?.endOffset || 0;
           }
 
+          // 找到光标此刻所在的节点索引
           let curCaretInChildsIndex = allChildNodes.findIndex(
             (node) =>
               node ===
@@ -911,7 +912,10 @@ export default {
               (node) => node === curNode
             );
             // 当前节点在过滤后的有效Node中不存在时
-            if (curNodeInFilterredIndex < 0) continue;
+            if (curNodeInFilterredIndex < 0) {
+              curCaretInChildsIndex--;
+              continue;
+            }
             // 当遍历完成到没有节点时
             if (!curNode) break;
 
