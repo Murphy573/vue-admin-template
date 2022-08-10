@@ -114,7 +114,8 @@ export default {
     // 取消标识符触发选择的函数
     determineCancelIdentifierSelect: {
       type: Function,
-      default: (pressKey, currentIndentifier, allIdentifiers) => {
+      default: (event, currentIndentifier, allIdentifiers) => {
+        const pressKey = event.key;
         return (
           [' ', 'ArrowLeft', 'ArrowRight', ...allIdentifiers].includes(
             pressKey
@@ -510,25 +511,24 @@ export default {
         // 按下这几个键时，禁用默认行为
         if (this.preventDefaultKeysOnPanelVisible.includes(key)) {
           event.preventDefault();
+          return;
         }
         // 当按下配置的关键字按键或者空格，完取消本次输入
-        else {
-          if (
-            this.determineCancelIdentifierSelect(
-              key,
-              this.richtextEditorOptions.currentIndentifier,
-              this.genAllIdetifiers
-            )
-          ) {
-            this.cancelIdentifierSelect(
-              this.richtextEditorOptions.currentIndentifier
-            );
-            // 转换输入内容
-            this.genEditorInputContent();
+        if (
+          this.determineCancelIdentifierSelect(
+            event,
+            this.richtextEditorOptions.currentIndentifier,
+            this.genAllIdetifiers
+          )
+        ) {
+          this.cancelIdentifierSelect(
+            this.richtextEditorOptions.currentIndentifier
+          );
+          // 转换输入内容
+          this.genEditorInputContent();
 
-            if (this.isExceedMaxlength) {
-              event.preventDefault();
-            }
+          if (this.isExceedMaxlength) {
+            event.preventDefault();
           }
         }
       }
