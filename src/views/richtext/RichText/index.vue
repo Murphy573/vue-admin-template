@@ -82,6 +82,7 @@ export default {
           preserveIdentifierOnCancel: true,
           datasetKey: 'memberInfo',
           insertPosition: 'start',
+          insertSpaceAtEnd: true,
           highlightTagOption: {
             tag: 'span',
             attribute: {

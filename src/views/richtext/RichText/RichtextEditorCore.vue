@@ -379,7 +379,8 @@ export default {
           ele.setAttribute(key, attribute[key]);
         });
       }
-      const { insertPosition = 'start' } = currentIndentifierOption;
+      const { insertPosition = 'start', insertSpaceAtEnd } =
+        currentIndentifierOption;
 
       // 设置innerText
       let text = content;
@@ -393,8 +394,8 @@ export default {
         } else if (insertPosition === 'surround') {
           text = identifier + text + identifier;
         }
-        // 不可编辑后方插入空格
-        text = `${text} `;
+        // 不可编辑后方是否插入空格
+        text = `${text}${insertSpaceAtEnd ? ' ' : ''}`;
       }
 
       const textNode = document.createTextNode(text);
