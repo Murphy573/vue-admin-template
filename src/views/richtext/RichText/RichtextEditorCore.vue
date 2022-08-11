@@ -811,10 +811,20 @@ export default {
     handlePaste(e) {
       e.preventDefault();
       let paste = (e.clipboardData || window.clipboardData).getData('text');
+      // 粘贴时，根据配置的关键字是否保留进行格式化
+      this.identifierOptions.forEach((item) => {
+        const { identifier, preserveIdentifierOnCancel } = item;
+
+        if (!preserveIdentifierOnCancel) {
+          paste = paste.replaceAll(identifier, '');
+        }
+      });
+
       const {
         compositionOptions: { contentLength },
         maxlength,
       } = this;
+
       if (contentLength >= maxlength) {
         return false;
       } else if (contentLength + paste.length >= maxlength) {
