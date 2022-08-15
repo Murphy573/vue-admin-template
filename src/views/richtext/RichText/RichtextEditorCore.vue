@@ -1163,6 +1163,7 @@ export default {
   overflow-wrap: break-word;
   border: 1px solid red;
   background: rgb(176, 185, 149);
+  /* 解决删除高亮节点时，光标会闪烁到该行末尾再回来的问题 */
   padding: 5px;
   overflow-y: auto;
   overflow-x: hidden;

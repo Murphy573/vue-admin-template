@@ -59,7 +59,7 @@ export default {
     },
     maxlength: {
       type: Number,
-      default: 10,
+      default: 1000,
     },
   },
 
