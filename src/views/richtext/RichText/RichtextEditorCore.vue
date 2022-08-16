@@ -413,7 +413,7 @@ export default {
       const editingNode = this.richtextEditorOptions.editingNode;
       if (!this.richtextEditor || !editingNode) return;
 
-      let newTextNode = content;
+      let contentNode = content;
       if (typeof content === 'string') {
         let text = '';
         if (identifier) {
@@ -433,18 +433,24 @@ export default {
           text = content;
         }
         // 消除0宽节点
-        newTextNode = document.createTextNode(clearZeroWidthSpace(text));
+        contentNode = document.createTextNode(clearZeroWidthSpace(text));
       }
       if (this.richtextEditor.contains(editingNode)) {
-        this.richtextEditor.insertBefore(newTextNode, editingNode);
+        this.richtextEditor.insertBefore(contentNode, editingNode);
         this.richtextEditor.removeChild(editingNode);
+        const sel = window.getSelection();
+        const range = document.createRange();
+        range.setStartAfter(contentNode);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
       }
       // 是否追加0宽占位符
       if (insertEmpty) {
         const emptyNode = document.createTextNode(ZeroWidthSpaceChar);
         this.insertHtml(emptyNode);
-        this.setRichtextEditorFocus();
       }
+      this.setRichtextEditorFocus();
     },
 
     // 当点击编辑器时
