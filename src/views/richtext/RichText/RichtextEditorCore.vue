@@ -870,8 +870,6 @@ export default {
       if (!this.richtextEditor) return;
       // 输入法输入时
       if (this.compositionOptions.isInputing) return;
-      // 编辑器未聚焦时
-      if (!this.richtextEditorOptions.isFocus) return;
 
       // 所有子节点
       const allChildNodes = [...this.richtextEditor.childNodes];
@@ -1053,6 +1051,7 @@ export default {
     // 点击容器外：是指包含输入节点、快捷插入节点等之外的节点
     handleClickoutside() {
       if (!this.richtextEditorOptions.isFocus) return;
+
       this.cancelIdentifierSelect(
         this.richtextEditorOptions.currentIndentifier,
         false
