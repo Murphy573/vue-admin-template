@@ -839,7 +839,7 @@ export default {
       });
 
       const {
-        compositionOptions: { contentLength },
+        richtextEditorOptions: { contentLength },
         maxlength,
       } = this;
 
