@@ -217,6 +217,17 @@ export default {
     },
   },
 
+  watch: {
+    maxlength() {
+      if (!this.richtextEditor) return;
+      // this.setRichtextEditorFocus()
+      // // 将光标移动到最后面
+      // moveCaret2StartOrEnd(this.richtextEditor, 'end')
+      // this.genEditorInputContent()
+      this.clearRichtextContent();
+    },
+  },
+
   methods: {
     // 关键词触发的选中：外部调用
     confirmIdentifierSelect({ identifier, data, contentKey }) {
@@ -1057,7 +1068,12 @@ export default {
     // 清空富文本内容
     clearRichtextContent() {
       if (!this.richtextEditor) return;
+
+      const oldInnerHtml = this.richtextEditor.innerHTML;
+      if (!oldInnerHtml) return;
+
       this.richtextEditor.innerHTML = '';
+      this.genEditorInputContent();
     },
 
     // 记录上一次的选区位置
@@ -1167,6 +1183,7 @@ export default {
   user-select: text;
   white-space: pre-wrap;
   overflow-wrap: break-word;
+  word-break: break-all;
   border: 1px solid red;
   background: rgb(176, 185, 149);
   /* 解决删除高亮节点时，光标会闪烁到该行末尾再回来的问题 */
