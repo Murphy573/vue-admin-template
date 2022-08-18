@@ -118,13 +118,26 @@ export default {
     // 取消标识符触发选择的函数
     determineCancelIdentifierSelect: {
       type: Function,
-      default: (event, currentIndentifier, allIdentifiers) => {
+      default: (event, currentIndentifier, allIdentifierOptionsMap) => {
         const pressKey = event.key;
-        return (
-          [' ', 'ArrowLeft', 'ArrowRight', ...allIdentifiers].includes(
-            pressKey
-          ) || !EditableNodeTextPattern.test(pressKey)
-        );
+
+        const allIdentifiers = Object.keys(allIdentifierOptionsMap);
+        const currentIndentifierOption =
+          allIdentifierOptionsMap[currentIndentifier];
+        const isSurround =
+          currentIndentifierOption.insertPosition === 'surround';
+        const cannotPressKeys = ['ArrowLeft', 'ArrowRight', ...allIdentifiers];
+        !isSurround && cannotPressKeys.push(' ');
+
+        const isKeyInCannot = cannotPressKeys.includes(pressKey);
+        const isCannotPressEditableNodeTextPattern =
+          !EditableNodeTextPattern.test(pressKey);
+
+        // 默认标识符包围的高亮节点可以输入其他任意字符
+        if (isSurround) {
+          return isKeyInCannot;
+        }
+        return isKeyInCannot || isCannotPressEditableNodeTextPattern;
       },
     },
     // br节点占用几个输入长度
@@ -306,7 +319,11 @@ export default {
       }
 
       if (this.isExceedMaxlength) return;
-      if (!this.genAllIdentifierOptionsMap[identifier]) return;
+
+      const currentIndentifierOption =
+        this.genAllIdentifierOptionsMap[identifier];
+
+      if (!currentIndentifierOption) return;
 
       this.setRichtextEditorFocus();
 
@@ -335,7 +352,11 @@ export default {
       Object.assign(this.richtextEditorOptions, {
         editingNode: Object.freeze(placeholderNode),
         currentIndentifier: identifier,
-        filterTextPattern: new RegExp(`${identifier}([^${identifier}\\s]*)$`),
+        filterTextPattern: new RegExp(
+          `${identifier}([^${identifier}${
+            currentIndentifierOption.insertPosition === 'surround' ? '' : '\\s'
+          }]*)$`
+        ),
         filterText: '',
       });
       this.$nextTick(() => {
@@ -566,7 +587,7 @@ export default {
           this.determineCancelIdentifierSelect(
             event,
             this.richtextEditorOptions.currentIndentifier,
-            this.genAllIdetifiers
+            this.genAllIdentifierOptionsMap
           )
         ) {
           this.cancelIdentifierSelect(
