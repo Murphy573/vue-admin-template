@@ -164,6 +164,8 @@ export default {
       deleteKeys: ['Backspace', 'Delete'],
       // 方向键键
       arrowKeys: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'],
+      // 当shift快速放开此时输入@，不会触发@面板问题
+      indentiferKeydownRecord: '',
     };
   },
 
@@ -522,6 +524,9 @@ export default {
         event.preventDefault();
         return;
       }
+      this.indentiferKeydownRecord = this.genAllIdetifiers.includes(key)
+        ? key
+        : '';
       // 当触发了关键字
       if (this.isTriggerEditing) {
         // 输入法输入不走下面的逻辑
@@ -589,8 +594,9 @@ export default {
     },
 
     handleKeyup(event) {
-      const { key } = event;
+      let { key } = event;
       if (!key) return;
+      key = this.indentiferKeydownRecord || key;
       // 获取选定对象
       const selection = window.getSelection();
       if (!selection?.isCollapsed) return;
@@ -615,6 +621,7 @@ export default {
           this.genEditorInputContent();
         }
       } else if (this.genAllIdetifiers.includes(key)) {
+        this.indentiferKeydownRecord = '';
         if (this.isExceedMaxlength) return;
         // 拿到记录的对象
         const lastRange = this.lastRangeRecord;
