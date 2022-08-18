@@ -8,10 +8,12 @@
       :wrapperStyle="wrapperStyle"
       :editorStyle="editorStyle"
       :isCaretPosByContainer="true"
+      :defaultValue="defaultValue"
       @on-identifier-search="handleSearch"
       @on-sync-caret-pos="handleSyncCaretPos"
       @on-open-identifier-select="handleTrigger"
-      @on-cancel-identifier-select="handleCancelTrigger" />
+      @on-cancel-identifier-select="handleCancelTrigger"
+      @on-input-change="handleOnInputChange" />
 
     <el-row>
       <el-button @click="handleClickAtBtn"
@@ -20,6 +22,8 @@
       <el-button @click="handleClickSuperTopicBtn"
         >#{{ superTopicsOptions.visible }}</el-button
       >
+      <el-button @click="handleStoreContent">存储此时的content</el-button>
+      <el-button @click="handleRestoreContent">恢复存储的content</el-button>
     </el-row>
 
     <AtMembers
@@ -59,7 +63,7 @@ export default {
     },
     maxlength: {
       type: Number,
-      default: 1000,
+      default: 10,
     },
   },
 
@@ -105,6 +109,9 @@ export default {
         className: 'editor-style',
         style: {},
       },
+      curInputContent: {},
+      storedInputFormattedContent: [],
+      defaultValue: [],
     };
   },
 
@@ -171,6 +178,16 @@ export default {
     },
     handleSyncCaretPos(pos) {
       this.caretPos = pos;
+    },
+
+    handleOnInputChange(v) {
+      this.curInputContent = v;
+    },
+    handleStoreContent() {
+      this.storedInputFormattedContent = this.curInputContent.formattedContents;
+    },
+    handleRestoreContent() {
+      this.defaultValue = this.storedInputFormattedContent;
     },
   },
 };

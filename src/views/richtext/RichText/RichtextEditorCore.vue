@@ -56,6 +56,10 @@ export default {
       type: Number,
       default: Number.MAX_SAFE_INTEGER,
     },
+    defaultValue: {
+      type: Array,
+      default: () => [],
+    },
     // 是否可以换行
     isCanLF: {
       type: Boolean,
@@ -122,6 +126,11 @@ export default {
           ) || !EditableNodeTextPattern.test(pressKey)
         );
       },
+    },
+    // br节点占用几个输入长度
+    brNodeLength: {
+      type: Number,
+      default: 1,
     },
   },
 
@@ -227,6 +236,12 @@ export default {
       // moveCaret2StartOrEnd(this.richtextEditor, 'end')
       // this.genEditorInputContent()
       this.clearRichtextContent();
+    },
+    defaultValue: {
+      handler(v) {
+        this.renderRichtextContent(v);
+      },
+      immediate: true,
     },
   },
 
@@ -373,25 +388,7 @@ export default {
       const currentIndentifierOption =
         this.genAllIdentifierOptionsMap[identifier];
 
-      // 高亮节点配置
-      const {
-        tag = 'span',
-        className = 'editor-node',
-        attribute = {},
-      } = currentIndentifierOption.highlightTagOption ||
-      this.highlightTagOption;
-
-      const ele = document.createElement(tag);
-      // 设置类名
-      ele.setAttribute('class', className);
-      // 设置属性
-      ele.setAttribute('contenteditable', canEdit ? 'true' : 'false');
-      ele.setAttribute('tabindex', '-1');
-      if (isPlainObj(attribute)) {
-        Object.keys(attribute).forEach((key) => {
-          ele.setAttribute(key, attribute[key]);
-        });
-      }
+      const ele = this.createHighlightNode(identifier, canEdit);
       const { insertPosition = 'start', insertSpaceAtEnd } =
         currentIndentifierOption;
 
@@ -413,6 +410,33 @@ export default {
 
       const textNode = document.createTextNode(text);
       ele.appendChild(textNode);
+
+      return ele;
+    },
+
+    createHighlightNode(identifier = '@', canEdit = true) {
+      const currentIndentifierOption =
+        this.genAllIdentifierOptionsMap[identifier];
+
+      // 高亮节点配置
+      const {
+        tag = 'span',
+        className = 'editor-node',
+        attribute = {},
+      } = currentIndentifierOption.highlightTagOption ||
+      this.highlightTagOption;
+
+      const ele = document.createElement(tag);
+      // 设置类名
+      ele.setAttribute('class', className);
+      // 设置属性
+      ele.setAttribute('contenteditable', canEdit ? 'true' : 'false');
+      ele.setAttribute('tabindex', '-1');
+      if (isPlainObj(attribute)) {
+        Object.keys(attribute).forEach((key) => {
+          ele.setAttribute(key, attribute[key]);
+        });
+      }
 
       return ele;
     },
@@ -520,7 +544,8 @@ export default {
 
     handleKeydown(event) {
       const { key, repeat } = event;
-      if (repeat) {
+      // 这里禁止长按输入：可能存在高亮节点，需要即时计算是否超出可输入长度，此时在keydown获取可编辑div内容可能不是最新的
+      if (repeat && !this.deleteKeys.includes(key)) {
         event.preventDefault();
         return;
       }
@@ -573,6 +598,11 @@ export default {
           }
 
           if (!this.isCanLF) return;
+          // 判断剩余可输入长度是否可以换行
+          const leftLength =
+            this.maxlength - this.richtextEditorOptions.contentLength;
+          if (leftLength < this.brNodeLength) return;
+
           // 换行
           const selection = window.getSelection();
           if (selection && selection.rangeCount > 0) {
@@ -836,6 +866,9 @@ export default {
     handlePaste(e) {
       e.preventDefault();
       let paste = (e.clipboardData || window.clipboardData).getData('text');
+      // 清除文本中的格式
+      paste = clearZeroWidthSpace(paste);
+      paste = paste.replace(/\n/g, '');
       // 粘贴时，根据配置的关键字是否保留进行格式化
       this.identifierOptions.forEach((item) => {
         const { identifier, preserveIdentifierOnCancel } = item;
@@ -892,7 +925,8 @@ export default {
         formattedContents,
       } = formatRichtextContent(
         filterredValidChildNodes,
-        this.genAllIdentifierOptionsMap
+        this.genAllIdentifierOptionsMap,
+        this.brNodeLength
       );
 
       /**
@@ -1043,13 +1077,14 @@ export default {
       // 向外发送的数据
       const emitData = {
         contentLength: this.richtextEditorOptions.contentLength,
-        content: formattedContents.filter((item) => {
+        formattedContents: formattedContents.filter((item) => {
           // 过滤掉content为空串的
           const noContentText = item.type === 'text' && item.content === '';
           return !noContentText;
         }),
-        hasIdentifier: hasIdentifier,
-        textNodeContents: textNodeContents,
+        hasIdentifier,
+        textNodeContents: textNodeContents.filter((item) => item !== ''),
+        isExceedMaxlength: this.isExceedMaxlength,
       };
 
       this.$emit('on-input-change', emitData);
@@ -1069,6 +1104,57 @@ export default {
       moveCaret2StartOrEnd(this.richtextEditor, 'end');
       this.setLastRangeRecord();
       this.richtextEditor?.blur();
+    },
+
+    // 转换默认的编辑器内容
+    renderRichtextContent(contents) {
+      if (!this.richtextEditor || !contents) return;
+
+      let innerHtml = '';
+
+      const cannotEditableTypes = [...this.genAllIdetifiers, 'br'];
+
+      contents.forEach((item, index) => {
+        const { type, content, identifierData } = item;
+
+        if (index > 0) {
+          const prevItem = contents[index - 1];
+          // 前一个节点是不可编辑节点，插入0宽节点
+          if (cannotEditableTypes.includes(prevItem.type)) {
+            innerHtml += ZeroWidthSpaceChar;
+          }
+        }
+
+        if (['unknown', 'text'].includes(type)) {
+          innerHtml += content;
+        } else if (this.genAllIdetifiers.includes(type)) {
+          const currentIndentifierOption =
+            this.genAllIdentifierOptionsMap[type];
+          const ele = this.createHighlightNode(type, false);
+          const textNode = document.createTextNode(content);
+          setElementDataset(ele, IdentiferFlagOnEle, type);
+          setElementDataset(
+            ele,
+            currentIndentifierOption.datasetKey,
+            JSON.stringify(identifierData)
+          );
+          ele.appendChild(textNode);
+          innerHtml += ele.outerHTML;
+        } else if (type === 'br') {
+          innerHtml += content.replace(/\n/g, '<br/>');
+        }
+
+        if (index === contents.length - 1) {
+          // 最后一个节点节点是不可编辑节点，插入0宽节点
+          if (cannotEditableTypes.includes(type)) {
+            innerHtml += ZeroWidthSpaceChar;
+          }
+        }
+      });
+
+      this.richtextEditor.innerHTML = innerHtml;
+
+      this.genEditorInputContent();
     },
 
     // 清空富文本内容

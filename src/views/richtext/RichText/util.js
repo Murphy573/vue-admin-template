@@ -214,10 +214,12 @@ export function extractFilterText(text, pattern) {
  * 转换richtext节点的content
  * @param {Node[]} childNodes 字节点数组
  * @param {Object} identifierOptionsMap 标识符映射
+ * @param {number} brNodeLength br节点占用几个输入长度
  */
 export function formatRichtextContent(
   childNodes = [],
-  identifierOptionsMap = {}
+  identifierOptionsMap = {},
+  brNodeLength = 1
 ) {
   const textNodeContents = [];
   let contentLength = 0;
@@ -237,11 +239,11 @@ export function formatRichtextContent(
     } else if (item.nodeName === 'BR') {
       // 换行节点
       textNodeContents.push('\n');
-      contentLength += 1;
+      contentLength += brNodeLength;
       return {
-        type: 'text',
+        type: 'br',
         content: '\n',
-        contentLength: 1,
+        contentLength: brNodeLength,
       };
     } else {
       const identifier = getElementDataset(item, IdentiferFlagOnEle);
