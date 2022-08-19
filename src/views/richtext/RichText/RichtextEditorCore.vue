@@ -1092,9 +1092,8 @@ export default {
       }
 
       const filterFormattedContents = formattedContents.filter((item) => {
-        // 过滤掉content为空串的
-        const noContentText = item.type === 'text' && item.content === '';
-        return !noContentText;
+        // 过滤掉节点类型是text且content为空串的
+        return !(item.type === 'text' && item.content === '');
       });
 
       // 向外发送的数据
