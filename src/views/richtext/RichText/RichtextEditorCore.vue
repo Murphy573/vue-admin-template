@@ -942,7 +942,6 @@ export default {
       const {
         contentLength: allContentLength,
         hasIdentifier,
-        textNodeContents,
         formattedContents,
       } = formatRichtextContent(
         filterredValidChildNodes,
@@ -1092,21 +1091,23 @@ export default {
         this.richtextEditorOptions.contentLength = allContentLength;
       }
 
-      // eslint-disable-next-line no-console
-      console.log('formattedContents', formattedContents);
+      const filterFormattedContents = formattedContents.filter((item) => {
+        // 过滤掉content为空串的
+        const noContentText = item.type === 'text' && item.content === '';
+        return !noContentText;
+      });
 
       // 向外发送的数据
       const emitData = {
         contentLength: this.richtextEditorOptions.contentLength,
-        formattedContents: formattedContents.filter((item) => {
-          // 过滤掉content为空串的
-          const noContentText = item.type === 'text' && item.content === '';
-          return !noContentText;
-        }),
+        formattedContents: filterFormattedContents,
         hasIdentifier,
-        textNodeContents: textNodeContents.filter((item) => item !== ''),
+        nodeTextcontents: filterFormattedContents.map((item) => item.content),
         isExceedMaxlength: this.isExceedMaxlength,
       };
+
+      // eslint-disable-next-line no-console
+      console.log('emitData', emitData);
 
       this.$emit('on-input-change', emitData);
     },

@@ -221,7 +221,6 @@ export function formatRichtextContent(
   identifierOptionsMap = {},
   brNodeLength = 1
 ) {
-  const textNodeContents = [];
   let contentLength = 0;
   let hasIdentifier = false;
 
@@ -229,7 +228,6 @@ export function formatRichtextContent(
     if (item && item.nodeName === '#text') {
       // 文本节点
       const textContent = clearZeroWidthSpace(item?.textContent || '');
-      textNodeContents.push(textContent);
       contentLength += textContent.length || 0;
       return {
         type: 'text',
@@ -238,7 +236,6 @@ export function formatRichtextContent(
       };
     } else if (item.nodeName === 'BR') {
       // 换行节点
-      textNodeContents.push('\n');
       contentLength += brNodeLength;
       return {
         type: 'br',
@@ -264,7 +261,6 @@ export function formatRichtextContent(
           _identifierContentLength = textContent.length || 0;
         }
         contentLength += _identifierContentLength;
-        textNodeContents.push(textContent);
 
         return {
           type: identifier,
@@ -278,7 +274,6 @@ export function formatRichtextContent(
       const unknownTextContent = clearZeroWidthSpace(item?.textContent || '');
       let _unknownContentLength = unknownTextContent.length || 0;
       contentLength += _unknownContentLength;
-      textNodeContents.push(unknownTextContent);
       return {
         type: 'unknown',
         content: unknownTextContent,
@@ -294,7 +289,5 @@ export function formatRichtextContent(
     contentLength,
     // 是否包含标识符
     hasIdentifier,
-    // 节点的文本内容数组
-    textNodeContents,
   };
 }
