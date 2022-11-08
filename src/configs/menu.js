@@ -25,6 +25,13 @@ export default [
     },
   },
   {
+    name: 'docPreview',
+    meta: {
+      icon: 'dashboard',
+      title: 'docPreview',
+    },
+  },
+  {
     name: 'richtext',
     meta: {
       icon: 'dashboard',

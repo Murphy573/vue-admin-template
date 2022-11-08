@@ -3,6 +3,7 @@ import eg from './modules/eg';
 import Base from './modules/base';
 import imgPreview from './modules/imgPreview';
 import richtext from './modules/richtext';
+import docPreview from './modules/docPreview';
 
 /**
 * meta : {
@@ -36,6 +37,7 @@ export default [
       eg,
       imgPreview,
       richtext,
+      docPreview,
     ],
   },
   {

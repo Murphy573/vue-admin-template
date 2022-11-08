@@ -9,6 +9,7 @@ export default {
     eg4: '示例4',
     detail: '示例4详情',
     imgPreview: '图片预览',
+    docPreview: '文档预览',
     richtext: 'at富文本',
   },
   tagsView: {
