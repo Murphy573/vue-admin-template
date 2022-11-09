@@ -236,3 +236,21 @@ export function fileDownloadByUrl(url, filename = '') {
   // 然后移除
   document.body.removeChild(eleLink);
 }
+
+/**
+ * 加载图片
+ * @param url 图片链接
+ */
+export function loadImgByUrl(url) {
+  return new Promise((resolve, reject) => {
+    let img = new Image();
+    img.src = url;
+    img.crossOrigin = 'anonymous';
+    img.onload = function () {
+      resolve(img);
+    };
+    img.onerror = function (error) {
+      reject(error);
+    };
+  });
+}

@@ -18,6 +18,12 @@ import './icons'; // icon
 import './directive';
 // 引入全局filter
 import './filters';
+import VueLazyload from 'vue-lazyload';
+
+Vue.use(VueLazyload, {
+  observer: true,
+  observerOptions: { rootMargin: '0px', threshold: 0.5 },
+});
 
 Vue.use(Element, { size: 'small', zIndex: 3000 });
 

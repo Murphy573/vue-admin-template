@@ -1,7 +1,7 @@
 export default {
   path: '/docPreview',
   name: 'docPreview',
-  component: () => import('@/views/docPreview/index'),
+  component: () => import('@/views/docPreview/index.vue'),
   meta: {
     isWhiteList: true,
     menuMapper: 'docPreview',
