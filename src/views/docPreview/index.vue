@@ -1,12 +1,18 @@
 <template>
   <div class="preview-container">
     <div class="doc-preview-wrapper">
-      <div class="sidebar"></div>
+      <div ref="siderbarRef" class="sidebar">
+        <img
+          v-for="(item, index) of imgUrls"
+          :key="index"
+          v-lazy="item"
+          :class="{ active: index === previewPageIndex - 1 }" />
+      </div>
       <div
         ref="docPreviewRef"
         class="doc-preview"
+        :class="{ 'sidebar-expand': sidebarExpand }"
         @scroll="handleDocPrevewScroll">
-        <!-- <img :src="imgUrls[0]" :style="genDocImgRenderStyle" /> -->
         <div
           v-for="(item, index) of imgUrls"
           :key="index"
@@ -29,10 +35,14 @@
         :max="imgUrls.length"
         step-strictly
         style="margin-right: 20px"
-        :disabled="resizeScrollLocked"></el-input-number>
+        :disabled="resizeScrollLocked"
+        @change="handleTargetPageIndexScrollIntoView"></el-input-number>
       <el-button @click="zoomIn(0.1)">放大(+50%)</el-button>
       <el-button @click="zoomOut(0.1)">缩小(-50%)</el-button>
       <el-button @click="resize2Adaptive">自适应填充</el-button>
+      <el-button @click="toggleSidebarExpand"
+        >侧边栏{{ sidebarExpand ? '收起' : '展开' }}</el-button
+      >
     </div>
   </div>
 </template>
@@ -40,9 +50,9 @@
 <script>
 import { loadImgByUrl } from '@/utils/file.js';
 // 最小比率
-const MinPercent = 0.01;
+const MinPercent = 0.5;
 // 最大比率
-const MaxPercent = 4;
+const MaxPercent = 2;
 // 每张图片间距
 const Gap = 20;
 
@@ -96,6 +106,8 @@ export default {
       resizeScrollLocked: false,
       // 当前预览的页码
       previewPageIndex: 1,
+      // 侧边栏展开
+      sidebarExpand: false,
     };
   },
 
@@ -106,9 +118,11 @@ export default {
       return {
         width: width + 'px',
         height: height + 'px',
-        // left: imgRenderLeft + 'px',
-        // top: imgRenderTop + 'px',
       };
+    },
+    // 图片数量
+    getImgNums() {
+      return this.imgUrls?.length || 0;
     },
   },
 
@@ -118,11 +132,55 @@ export default {
     },
   },
 
-  watch: {},
-
-  created() {},
-
   methods: {
+    toggleSidebarExpand() {
+      this.sidebarExpand = !this.sidebarExpand;
+      this.$nextTick(() => {
+        // 图片预览容器
+        const $docPreviewRef = this.$refs.docPreviewRef;
+        this.docImgPreviewDomSize.width =
+          $docPreviewRef?.getBoundingClientRect?.()?.width ||
+          this.docImgPreviewDomSize.width;
+      });
+    },
+    // 将目标图片页码滚动到可视区域内: 顶部与可视区域顶部对齐
+    handleTargetPageIndexScrollIntoView(pageIndex = 1) {
+      if (pageIndex < 1 || pageIndex > this.getImgNums) return;
+
+      // 图片预览容器
+      const $docPreviewRef = this.$refs.docPreviewRef;
+
+      const { height: domImgRenderHeight } = this.docImgRenderSize;
+      const { height: docImgPreviewDomHeight } = this.docImgPreviewDomSize;
+
+      const maxTop = Math.max(
+        0,
+        this.calcTotalHeight(domImgRenderHeight) - docImgPreviewDomHeight
+      );
+      const minTop = 0;
+
+      const items = $docPreviewRef.querySelectorAll('.doc-image-container');
+      if (!items.length) return;
+
+      let newRenderScrollTop =
+        Math.max(pageIndex - 1, 0) * domImgRenderHeight +
+        Math.max(pageIndex - 1, 0) * Gap;
+
+      // 是否到上下边界
+      newRenderScrollTop =
+        newRenderScrollTop >= maxTop
+          ? maxTop
+          : newRenderScrollTop < minTop
+          ? minTop
+          : newRenderScrollTop;
+
+      this.docImgPreviewScrollPos = {
+        ...this.docImgPreviewScrollPos,
+        scrollTop: newRenderScrollTop,
+      };
+
+      this.handleDocImgPreviewScrollPosEffect();
+    },
     // 放大
     zoomIn(addPercent) {
       let addedPercent = this.currentPercent + addPercent;
@@ -150,6 +208,69 @@ export default {
       this.rerenderDocImg();
     },
 
+    /**
+     * 更新文档预览页码索引
+     */
+    updatePreviewPageIndex() {
+      this.$nextTick(() => {
+        const $docPreviewRef = this.$refs.docPreviewRef;
+        const { bottom: previewDomBottom, height: previewDomHeight } =
+          $docPreviewRef?.getBoundingClientRect();
+        const items = $docPreviewRef.querySelectorAll('.doc-image-container');
+        let i = 1;
+
+        while (i <= items.length) {
+          const targetItem = items[i - 1];
+          const { bottom } = targetItem?.getBoundingClientRect();
+
+          // 底部大于可视区域底部 或者 底部距离可视区域底部小于1/2，中断循环
+          if (
+            bottom >= previewDomBottom ||
+            (previewDomBottom - bottom) / previewDomHeight < 1 / 2
+          ) {
+            break;
+          }
+
+          i++;
+        }
+        this.previewPageIndex = i;
+      });
+    },
+
+    /**
+     * 更新sidebar滚动位置
+     */
+    updateSidebarScrollPos() {
+      const $siderbarRef = this.$refs.siderbarRef;
+      const items = $siderbarRef.querySelectorAll('img');
+      // 查找当前选中的节点
+      const currentItem = items[this.previewPageIndex - 1];
+      if (!currentItem) return;
+      const {
+        top: cTop,
+        bottom: cBottom,
+        height: cHeight,
+      } = $siderbarRef.getBoundingClientRect();
+
+      const { top: itemTop, bottom: itemBottom } =
+        currentItem.getBoundingClientRect();
+      const minScrollTop = 0;
+      const maxScrollTop = $siderbarRef.scrollHeight - cHeight;
+      const currentScrollTop = $siderbarRef.scrollTop;
+      // 需要向上移动
+      if (cTop > itemTop) {
+        $siderbarRef.scrollTop = Math.max(
+          currentScrollTop - (cTop - itemTop),
+          minScrollTop
+        );
+      } else if (itemBottom > cBottom) {
+        $siderbarRef.scrollTop = Math.min(
+          currentScrollTop + (itemBottom - cBottom),
+          maxScrollTop
+        );
+      }
+    },
+
     // 滚动时
     handleDocPrevewScroll(e) {
       const { scrollTop, scrollLeft } = e.target;
@@ -170,20 +291,15 @@ export default {
           $docPreviewRef.scrollLeft = scrollLeft;
         }
 
-        const previewPageIndex =
-          Math.floor(scrollTop / (this.docImgRenderSize.height + Gap / 2)) + 1;
-        this.previewPageIndex = previewPageIndex;
+        this.updatePreviewPageIndex();
+        this.updateSidebarScrollPos();
       });
     },
 
     // 重新渲染文档图片
     rerenderDocImg() {
-      const { width: oldDocImgRenderWidth, height: oldDocImgRenderHeight } =
-        this.docImgRenderSize;
-
-      const { scrollLeft: oldScrollLeft, scrollTop: oldScrollTop } =
-        this.docImgPreviewScrollPos;
-
+      const { height: oldDocImgRenderHeight } = this.docImgRenderSize;
+      const { scrollTop: oldScrollTop } = this.docImgPreviewScrollPos;
       const { width: docImgPreviewDomWidth, height: docImgPreviewDomHeight } =
         this.docImgPreviewDomSize;
 
@@ -207,19 +323,21 @@ export default {
       const oldRenderTotalHeight = this.calcTotalHeight(oldDocImgRenderHeight);
       const newRenderTotalHeight = this.calcTotalHeight(newRenderHeight);
 
-      // 图片数量
-      const imgNums = this.imgUrls.length || 0;
-
       // 宽度和或者高度大于可视区域时，计算位置
       if (
         newRenderWidth > docImgPreviewDomWidth ||
         newRenderTotalHeight > docImgPreviewDomHeight
       ) {
-        newRenderScrollLeft = this.calcRenderPosition(
-          oldScrollLeft,
-          oldDocImgRenderWidth,
-          newRenderWidth
+        const maxTop = Math.max(
+          0,
+          newRenderTotalHeight - docImgPreviewDomHeight
         );
+        const minTop = 0;
+        const maxLeft = Math.max(0, newRenderWidth - docImgPreviewDomWidth);
+        const minLeft = 0;
+
+        // 水平居中
+        newRenderScrollLeft = maxLeft / 2;
 
         newRenderScrollTop = this.calcRenderPosition(
           oldScrollTop,
@@ -227,36 +345,27 @@ export default {
           newRenderTotalHeight
         );
 
-        const maxTop = Math.max(
-          0,
-          newRenderHeight * imgNums - docImgPreviewDomHeight
-        );
-        const minTop = 0;
-        const maxLeft = Math.max(0, newRenderWidth - docImgPreviewDomWidth);
-        const minLeft = 0;
-
-        // 是否到上边界
-        if (newRenderScrollTop < minTop) {
-          newRenderScrollTop = minTop;
-        }
-        // 是否到右边界
-        if (newRenderScrollLeft >= maxLeft) {
-          newRenderScrollLeft = maxLeft;
-        }
-        // 是否到下边界
-        if (newRenderScrollTop >= maxTop) {
-          newRenderScrollTop = maxTop;
-        }
-        // 是否到左边界
-        if (newRenderScrollLeft < minLeft) {
-          newRenderScrollLeft = maxLeft;
-        }
+        // 是否到上下边界
+        newRenderScrollTop =
+          newRenderScrollTop < minTop
+            ? minTop
+            : newRenderScrollTop >= maxTop
+            ? maxTop
+            : newRenderScrollTop;
+        // 是否到左右边界
+        newRenderScrollLeft =
+          newRenderScrollLeft < minLeft
+            ? minLeft
+            : newRenderScrollLeft >= maxLeft
+            ? maxLeft
+            : newRenderScrollLeft;
       } else {
+        // TODO: 当缩放到不出滚动条时
         // this.
       }
 
       this.docImgPreviewScrollPos = {
-        screenLeft: newRenderScrollLeft,
+        scrollLeft: newRenderScrollLeft,
         scrollTop: newRenderScrollTop,
       };
 
@@ -282,37 +391,7 @@ export default {
 
       this.currentPercent = currentPercent;
 
-      const docImgRenderWidth = this.calcRenderSize(
-        this.docImgOriginOnePercentSize.width,
-        this.currentPercent
-      );
-      const docImgRenderHeight = this.calcRenderSize(
-        this.docImgOriginOnePercentSize.height,
-        this.currentPercent
-      );
-
-      const newRenderScrollLeft = this.calcRenderPosition(
-        this.docImgPreviewScrollPos.scrollLeft,
-        this.docImgRenderSize.width,
-        docImgRenderWidth
-      );
-
-      const newRenderScrollTop = this.calcRenderPosition(
-        this.docImgPreviewScrollPos.scrollTop,
-        this.calcTotalHeight(this.docImgRenderSize.height),
-        this.calcTotalHeight(docImgRenderHeight)
-      );
-
-      this.docImgRenderSize = {
-        width: docImgRenderWidth,
-        height: docImgRenderHeight,
-      };
-      this.docImgPreviewScrollPos = {
-        scrollLeft: newRenderScrollLeft,
-        scrollTop: newRenderScrollTop,
-      };
-
-      this.handleDocImgPreviewScrollPosEffect(true);
+      this.rerenderDocImg();
     },
 
     /**
@@ -328,8 +407,7 @@ export default {
      * 计算整体高度
      */
     calcTotalHeight(perHeight) {
-      const imgNums = this.imgUrls.length;
-      return perHeight * imgNums + (Gap * imgNums - 1);
+      return perHeight * this.getImgNums + Gap * this.getImgNums;
     },
     /**
      * 整体放大或缩小时，需要计算滚动态位置
@@ -378,7 +456,27 @@ export default {
 
     .sidebar {
       width: 120px;
+      height: 600px;
       background: lightblue;
+      overflow: auto;
+
+      > img {
+        display: block;
+        user-select: none;
+        width: 100%;
+        height: 100px;
+        object-fit: contain;
+
+        & + img {
+          margin-top: 10px;
+        }
+
+        &.active {
+          // 激活变更大小
+          // height: 200px;
+          border: 1px solid red;
+        }
+      }
     }
   }
 
@@ -396,17 +494,17 @@ export default {
       flex-flow: column nowrap;
     }
 
+    &.sidebar-expand {
+      width: 600px;
+    }
+
     .doc-image-container {
-      margin: 0 auto;
+      margin: 0 auto 20px auto;
       > img {
         display: block;
         user-select: none;
         width: 100%;
         height: 100%;
-      }
-
-      & + .doc-image-container {
-        margin-top: 20px;
       }
     }
   }
