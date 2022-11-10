@@ -21,8 +21,13 @@ import './filters';
 import VueLazyload from 'vue-lazyload';
 
 Vue.use(VueLazyload, {
+  preLoad: 1.2,
+  lazyComponent: true,
   observer: true,
-  observerOptions: { rootMargin: '0px', threshold: 0.5 },
+  observerOptions: {
+    rootMargin: '0px',
+    threshold: 0.1,
+  },
 });
 
 Vue.use(Element, { size: 'small', zIndex: 3000 });

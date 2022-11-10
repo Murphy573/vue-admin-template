@@ -19,7 +19,10 @@
           :style="[genDocImgRenderStyle]"
           class="doc-image-container">
           <img v-lazy="item" />
+          <div>加载中。。。</div>
         </div>
+
+        <div class="anno-container" :style="genAnnoStyle"></div>
       </div>
     </div>
 
@@ -40,9 +43,12 @@
       <el-button @click="zoomIn(0.1)">放大(+50%)</el-button>
       <el-button @click="zoomOut(0.1)">缩小(-50%)</el-button>
       <el-button @click="resize2Adaptive">自适应填充</el-button>
-      <el-button @click="toggleSidebarExpand"
-        >侧边栏{{ sidebarExpand ? '收起' : '展开' }}</el-button
-      >
+      <el-button @click="toggleSidebarExpand">
+        侧边栏{{ sidebarExpand ? '收起' : '展开' }}
+      </el-button>
+      <el-button @click="toggleAnnoActive">
+        批注{{ this.annoOptions.active ? '关闭' : '激活' }}
+      </el-button>
     </div>
   </div>
 </template>
@@ -74,6 +80,54 @@ export default {
         'https://picsum.photos/id/6/746/1056',
         'https://picsum.photos/id/7/746/1056',
         'https://picsum.photos/id/8/746/1056',
+        'https://picsum.photos/id/1/746/1056',
+        'https://picsum.photos/id/2/746/1056',
+        'https://picsum.photos/id/3/746/1056',
+        'https://picsum.photos/id/4/746/1056',
+        'https://picsum.photos/id/5/746/1056',
+        'https://picsum.photos/id/6/746/1056',
+        'https://picsum.photos/id/7/746/1056',
+        'https://picsum.photos/id/8/746/1056',
+        'https://picsum.photos/id/1/746/1056',
+        'https://picsum.photos/id/2/746/1056',
+        'https://picsum.photos/id/3/746/1056',
+        'https://picsum.photos/id/4/746/1056',
+        'https://picsum.photos/id/5/746/1056',
+        'https://picsum.photos/id/6/746/1056',
+        'https://picsum.photos/id/7/746/1056',
+        'https://picsum.photos/id/8/746/1056',
+        'https://picsum.photos/id/1/746/1056',
+        'https://picsum.photos/id/2/746/1056',
+        'https://picsum.photos/id/3/746/1056',
+        'https://picsum.photos/id/4/746/1056',
+        'https://picsum.photos/id/5/746/1056',
+        'https://picsum.photos/id/6/746/1056',
+        'https://picsum.photos/id/7/746/1056',
+        'https://picsum.photos/id/8/746/1056',
+        'https://picsum.photos/id/1/746/1056',
+        'https://picsum.photos/id/2/746/1056',
+        'https://picsum.photos/id/3/746/1056',
+        'https://picsum.photos/id/4/746/1056',
+        'https://picsum.photos/id/5/746/1056',
+        'https://picsum.photos/id/6/746/1056',
+        'https://picsum.photos/id/7/746/1056',
+        'https://picsum.photos/id/8/746/1056',
+        'https://picsum.photos/id/1/746/1056',
+        'https://picsum.photos/id/2/746/1056',
+        'https://picsum.photos/id/3/746/1056',
+        'https://picsum.photos/id/4/746/1056',
+        'https://picsum.photos/id/5/746/1056',
+        'https://picsum.photos/id/6/746/1056',
+        'https://picsum.photos/id/7/746/1056',
+        'https://picsum.photos/id/8/746/1056',
+        'https://picsum.photos/id/1/746/1056',
+        'https://picsum.photos/id/2/746/1056',
+        'https://picsum.photos/id/3/746/1056',
+        'https://picsum.photos/id/4/746/1056',
+        'https://picsum.photos/id/5/746/1056',
+        'https://picsum.photos/id/6/746/1056',
+        'https://picsum.photos/id/7/746/1056',
+        'https://picsum.photos/id/8/746/1056',
       ],
       // 当前缩放比率
       currentPercent: MinPercent,
@@ -90,7 +144,8 @@ export default {
       // 文档图片实际渲染size
       docImgRenderSize: {
         width: 0,
-        height: 0,
+        // 懒加载设置初始高度
+        height: 400,
       },
       // 文档图片预览容器size
       docImgPreviewDomSize: {
@@ -108,6 +163,12 @@ export default {
       previewPageIndex: 1,
       // 侧边栏展开
       sidebarExpand: false,
+      // 批注选项
+      annoOptions: {
+        active: false,
+        top: 0,
+        left: 0,
+      },
     };
   },
 
@@ -118,6 +179,18 @@ export default {
       return {
         width: width + 'px',
         height: height + 'px',
+      };
+    },
+    genAnnoStyle() {
+      const { top, left, active } = this.annoOptions;
+      const { width, height } = this.docImgRenderSize;
+
+      return {
+        width: width + 'px',
+        height: height + 'px',
+        top: top + 'px',
+        left: left + 'px',
+        display: active ? 'block' : 'none',
       };
     },
     // 图片数量
@@ -141,7 +214,36 @@ export default {
         this.docImgPreviewDomSize.width =
           $docPreviewRef?.getBoundingClientRect?.()?.width ||
           this.docImgPreviewDomSize.width;
+
+        const maxLeft = Math.max(
+          0,
+          this.docImgRenderSize.width - this.docImgPreviewDomSize.width
+        );
+
+        this.docImgPreviewScrollPos = {
+          ...this.docImgPreviewScrollPos,
+          // 水平居中
+          scrollLeft: maxLeft / 2,
+        };
+
+        this.handleDocImgPreviewScrollPosEffect();
       });
+    },
+    toggleAnnoActive() {
+      this.annoOptions.active = !this.annoOptions.active;
+      if (this.annoOptions.active) {
+        const { width: renderWidth, height: renderHeight } =
+          this.docImgRenderSize;
+        const $docPreviewRef = this.$refs.docPreviewRef;
+
+        this.annoOptions.top =
+          (renderHeight + Gap) * (this.previewPageIndex - 1);
+        // 出现滚动条时，需使用clientWidth
+        this.annoOptions.left = Math.max(
+          ($docPreviewRef.clientWidth - renderWidth) / 2,
+          0
+        );
+      }
     },
     // 将目标图片页码滚动到可视区域内: 顶部与可视区域顶部对齐
     handleTargetPageIndexScrollIntoView(pageIndex = 1) {
@@ -505,7 +607,25 @@ export default {
         user-select: none;
         width: 100%;
         height: 100%;
+
+        &[lazy='loading'] {
+          height: 0;
+          & + div {
+            display: block;
+          }
+        }
       }
+
+      > div {
+        display: none;
+      }
+    }
+
+    .anno-container {
+      position: absolute;
+      background: red;
+      opacity: 0.5;
+      z-index: 99;
     }
   }
 
