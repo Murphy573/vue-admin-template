@@ -12,7 +12,8 @@
         ref="docPreviewRef"
         class="doc-preview"
         :class="{ 'sidebar-expand': sidebarExpand }"
-        @scroll="handleDocPrevewScroll">
+        @scroll="handleDocPrevewScroll"
+        @mousewheel="handleMouseWheel">
         <div
           v-for="(item, index) of imgUrls"
           :key="index"
@@ -72,54 +73,6 @@ export default {
   data() {
     return {
       imgUrls: [
-        'https://picsum.photos/id/1/746/1056',
-        'https://picsum.photos/id/2/746/1056',
-        'https://picsum.photos/id/3/746/1056',
-        'https://picsum.photos/id/4/746/1056',
-        'https://picsum.photos/id/5/746/1056',
-        'https://picsum.photos/id/6/746/1056',
-        'https://picsum.photos/id/7/746/1056',
-        'https://picsum.photos/id/8/746/1056',
-        'https://picsum.photos/id/1/746/1056',
-        'https://picsum.photos/id/2/746/1056',
-        'https://picsum.photos/id/3/746/1056',
-        'https://picsum.photos/id/4/746/1056',
-        'https://picsum.photos/id/5/746/1056',
-        'https://picsum.photos/id/6/746/1056',
-        'https://picsum.photos/id/7/746/1056',
-        'https://picsum.photos/id/8/746/1056',
-        'https://picsum.photos/id/1/746/1056',
-        'https://picsum.photos/id/2/746/1056',
-        'https://picsum.photos/id/3/746/1056',
-        'https://picsum.photos/id/4/746/1056',
-        'https://picsum.photos/id/5/746/1056',
-        'https://picsum.photos/id/6/746/1056',
-        'https://picsum.photos/id/7/746/1056',
-        'https://picsum.photos/id/8/746/1056',
-        'https://picsum.photos/id/1/746/1056',
-        'https://picsum.photos/id/2/746/1056',
-        'https://picsum.photos/id/3/746/1056',
-        'https://picsum.photos/id/4/746/1056',
-        'https://picsum.photos/id/5/746/1056',
-        'https://picsum.photos/id/6/746/1056',
-        'https://picsum.photos/id/7/746/1056',
-        'https://picsum.photos/id/8/746/1056',
-        'https://picsum.photos/id/1/746/1056',
-        'https://picsum.photos/id/2/746/1056',
-        'https://picsum.photos/id/3/746/1056',
-        'https://picsum.photos/id/4/746/1056',
-        'https://picsum.photos/id/5/746/1056',
-        'https://picsum.photos/id/6/746/1056',
-        'https://picsum.photos/id/7/746/1056',
-        'https://picsum.photos/id/8/746/1056',
-        'https://picsum.photos/id/1/746/1056',
-        'https://picsum.photos/id/2/746/1056',
-        'https://picsum.photos/id/3/746/1056',
-        'https://picsum.photos/id/4/746/1056',
-        'https://picsum.photos/id/5/746/1056',
-        'https://picsum.photos/id/6/746/1056',
-        'https://picsum.photos/id/7/746/1056',
-        'https://picsum.photos/id/8/746/1056',
         'https://picsum.photos/id/1/746/1056',
         'https://picsum.photos/id/2/746/1056',
         'https://picsum.photos/id/3/746/1056',
@@ -517,6 +470,25 @@ export default {
     calcRenderPosition(oldPos, oldSize, newSize) {
       if (!oldPos || !oldSize || !newSize) return 0;
       return (newSize * oldPos) / oldSize;
+    },
+
+    handleMouseWheel(e) {
+      // console.log(e)
+      // console.log('e.ctrlKey', e.ctrlKey)
+      // console.log('e.metaKey', e.metaKey)
+
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const finalData = e.wheelDelta || -e.deltaY;
+
+      // 向上滚缩小
+      if (finalData < 0) {
+        this.zoomOut(0.01);
+      } else {
+        this.zoomIn(0.01);
+      }
     },
 
     async initilize() {
