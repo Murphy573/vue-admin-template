@@ -14,7 +14,8 @@
     "build:deploy": "npm run lint && vue-cli-service build --mode deploy",
     "deploy:github": "sh build/deploy.sh",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+    "test-storybook": "test-storybook"
   },
   "dependencies": {
     "@tinymce/tinymce-vue": "3.0.1",
@@ -46,6 +47,7 @@
     "@storybook/addon-links": "^6.5.14",
     "@storybook/builder-webpack5": "^6.5.14",
     "@storybook/manager-webpack5": "^6.5.14",
+    "@storybook/test-runner": "^0.9.4",
     "@storybook/testing-library": "^0.0.13",
     "@storybook/vue": "^6.5.14",
     "@vue/cli-plugin-babel": "~5.0.0",
@@ -64,6 +66,7 @@
     "eslint-plugin-vue": "^8.0.3",
     "happypack": "^5.0.1",
     "husky": "^4.3.0",
+    "jest-environment-jsdom": "^29.5.0",
     "lint-staged": "^10.3.0",
     "postcss-pxtorem": "^5.1.1",
     "prettier": "^2.4.1",
