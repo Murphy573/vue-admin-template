@@ -76,7 +76,7 @@ module.exports = defineConfig({
     // 端口号
     port: 9999,
     hot: true,
-    host: '0.0.0.0',
+    host: 'localhost',
     https: false,
     // 配置自动启动浏览器
     open: true,
