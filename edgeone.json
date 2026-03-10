@@ -1,0 +1,23 @@
+{
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "nodeVersion": "18.20.4",
+  "outputDirectory": "./admin-prod-dist",
+  "rewrites": [
+    {
+      "source": "/*",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/*",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    }
+  ]
+}
